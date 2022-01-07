@@ -1,4 +1,4 @@
-# Home monitor script to monitor and log various sensors on a Raspberry Pi with email alerts
+# Home-sense program to monitor and log various sensors on a Raspberry Pi with email alerts
 # (C) 2020 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@ from email.mime.text import MIMEText
 # CONSTANTS
 PUMP_FILTER_SAMPLES = 5
 VERSION = 0.1
-CONFIG_FILENAME = 'home-monitor.conf'
+CONFIG_FILENAME = 'home-sense.conf'
 TEMPERATURE_HYSTERESIS = 1.0
 HUMIDITY_HYSTERESIS = 2.0
 MQTT_KEEPALIVE = 60
@@ -231,25 +231,25 @@ def sigint_handler(signum, frame):
 conf = configparser.ConfigParser()
 conf.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), CONFIG_FILENAME))
 try:
-    SENDER_EMAIL = conf.get('home-monitor', 'sender_email')
-    RECIPIENT_EMAIL = conf.get('home-monitor', 'recipient_email')
-    SMTP_SERVER = conf.get('home-monitor', 'smtp_server')
-    SUMP_PUMP_INPUT_PIN = conf.getint('home-monitor', 'sump_pump_input_pin')
+    SENDER_EMAIL = conf.get('home-sense', 'sender_email')
+    RECIPIENT_EMAIL = conf.get('home-sense', 'recipient_email')
+    SMTP_SERVER = conf.get('home-sense', 'smtp_server')
+    SUMP_PUMP_INPUT_PIN = conf.getint('home-sense', 'sump_pump_input_pin')
 except configparser.NoOptionError as e:
     print('Missing parameter in configuration file: {}'.format(e))
     sys.exit(os.EX_CONFIG)
 
 # Configuration settings with fallback values
-BROKER_IP = conf.get('home-monitor', 'broker_ip', fallback="127.0.0.1")
-BROKER_PORT = conf.getint('home-monitor', 'broker_port', fallback=1883)
-WATER_SENSORS = json.loads(conf.get('home-monitor', 'water_sensors', fallback=[]))
-DATABASE = conf.get('home-monitor', 'database', fallback='/home/pi/sensor_data.db')
-LOG_FILE = conf.get('home-monitor', 'logfile', fallback='/tmp/home-monitor.log')
-TABLE = conf.get('home-monitor', 'table', fallback='TemperatureHumidity')
-LOW_TEMP_THRESHOLD = conf.getfloat('home-monitor', 'low_temp_threshold', fallback=10.0)
-HIGH_HUMIDITY_THRESHOLD = conf.getfloat('home-monitor', 'high_humidity_threshold', fallback=85.0)
-SAMPLE_PERIOD = conf.getint('home-monitor', 'sample_period', fallback=300)
-LOG_LEVEL = conf.get('home-monitor', 'loglevel', fallback='info')
+BROKER_IP = conf.get('home-sense', 'broker_ip', fallback="127.0.0.1")
+BROKER_PORT = conf.getint('home-sense', 'broker_port', fallback=1883)
+WATER_SENSORS = json.loads(conf.get('home-sense', 'water_sensors', fallback=[]))
+DATABASE = conf.get('home-sense', 'database', fallback='/home/pi/sensor_data.db')
+LOG_FILE = conf.get('home-sense', 'logfile', fallback='/tmp/home-sense.log')
+TABLE = conf.get('home-sense', 'table', fallback='TemperatureHumidity')
+LOW_TEMP_THRESHOLD = conf.getfloat('home-sense', 'low_temp_threshold', fallback=10.0)
+HIGH_HUMIDITY_THRESHOLD = conf.getfloat('home-sense', 'high_humidity_threshold', fallback=85.0)
+SAMPLE_PERIOD = conf.getint('home-sense', 'sample_period', fallback=300)
+LOG_LEVEL = conf.get('home-sense', 'loglevel', fallback='info')
 
 # Start logging and set logging level; default to INFO level
 if LOG_LEVEL == 'error':

@@ -1,4 +1,4 @@
-# pi-home-monitor
+# home-sense
 
 This program provides home sensor monitoring on a Raspberry Pi. This modest program currently supports the [Grove AHT20 I2C
 temperature and humidity sensor](https://www.seeedstudio.com/Grove-AHT20-I2C-Industrial-grade-temperature-and-humidity-sensor-p-4497.html),
@@ -27,7 +27,7 @@ with `php` enabled to serve the `chart.php` file to display a record of data val
 
 ## Setup
 
-Place the program and the configuration file `home-monitor.conf`
+Place the program and the configuration file `home-sense.conf`
 in the same folder. Adjust the settings in the configuration file to reflect your local settings.
 In particular, you can set the thresholds at which alert e-mails will be triggered.
 
