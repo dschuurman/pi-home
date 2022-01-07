@@ -1,4 +1,4 @@
-# Home monitor script to monitor various sensors running on a Raspberry Pi
+# Home monitor script to monitor and log various sensors on a Raspberry Pi with email alerts
 # (C) 2020 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,
@@ -8,11 +8,12 @@
 
 import sqlite3
 from datetime import datetime
-import configparser
+import configparser, json
 import signal
 import sys
 import os
 import logging
+import paho.mqtt.client as mqtt
 
 # GPIO and sensor libraries
 import RPi.GPIO as GPIO
@@ -30,8 +31,10 @@ VERSION = 0.1
 CONFIG_FILENAME = 'home-monitor.conf'
 TEMPERATURE_HYSTERESIS = 1.0
 HUMIDITY_HYSTERESIS = 2.0
+MQTT_KEEPALIVE = 60
+QOS = 0
 
-## Function definitions ###
+## Class definitions ###
 
 class Email:
     ''' Class to encapsulate methods to send an alert email
@@ -56,7 +59,7 @@ class Email:
 
         # send the mail and terminate the session
         try:
-            # creates SMTP session and sends mail
+            # creates SMTP session and send mail
             s = smtplib.SMTP(self.server)
             s.sendmail(self.from_address, self.to_address, msg.as_string())
         except smtplib.SMTPResponseException as e:
@@ -94,8 +97,8 @@ class Sensors:
         return GPIO.input(self.sump_pump_input_pin)
 
 
-class Timer:
-    ''' Timer class used to control periodic actions with one tick per second
+class Events:
+    ''' Event class used to handle timer and MQTT messages
     '''
     def __init__(self, sensors, sample_period, db, email):
         ''' Constructor 
@@ -107,6 +110,7 @@ class Timer:
         self.low_temp_flag = False
         self.high_humidity_flag = False
         self.sump_alarm = False
+        self.water_leak_alarm = False
         self.email = email
 
         # initialize tick counter
@@ -194,13 +198,29 @@ class Timer:
                 self.email.send('Home humidity update', message)
                 self.high_humidity_flag = False
 
+    def mqtt_message_handler(self, client, data, msg):
+        ''' MQTT message handler
+            Send e-mail alert when water leak or low battery detected
+        '''
+        message = str(msg.payload.decode("utf-8"))
+        status = json.loads(message) # Parse JSON message from sensor
+        logging.info('Message received {}: {}'.format(datetime.now(), message))
+        sensor = msg.topic.split('/')[1]   # Extract sensor "friendly name" from MQTT topic
+        if status['water_leak'] and not self.water_leak_alarm:
+            self.email.send("Water lealk alarm detected on {}!".format(sensor), message)
+            self.water_leak_alarm = True
+        elif not status['water_leak'] and self.water_leak_alarm:
+            self.email.send("Water lealk alarm stopped on {}".format(sensor), message)
+            self.water_leak_alarm = False
+        if status['battery_low'] == True:
+            self.email.send("Low battery detected on {}!".format(sensor), message)
 
 def sigint_handler(signum, frame):
     ''' SIGINT handler - exit gracefully
     '''
     global db
-    db.close()                                   # close db
     signal.setitimer(signal.ITIMER_REAL, 0, 0)   # Disable interval timer
+    db.close()                                   # close db
     logging.info('Program recevied SIGINT at: {}'.format(datetime.now()))
     logging.shutdown()
     sys.exit(0)
@@ -219,6 +239,10 @@ except configparser.NoOptionError as e:
     print('Missing parameter in configuration file: {}'.format(e))
     sys.exit(os.EX_CONFIG)
 
+# Configuration settings with fallback values
+BROKER_IP = conf.get('home-monitor', 'broker_ip', fallback="127.0.0.1")
+BROKER_PORT = conf.getint('home-monitor', 'broker_port', fallback=1883)
+WATER_SENSORS = json.loads(conf.get('home-monitor', 'water_sensors', fallback=[]))
 DATABASE = conf.get('home-monitor', 'database', fallback='/home/pi/sensor_data.db')
 LOG_FILE = conf.get('home-monitor', 'logfile', fallback='/tmp/home-monitor.log')
 TABLE = conf.get('home-monitor', 'table', fallback='TemperatureHumidity')
@@ -244,17 +268,32 @@ signal.signal(signal.SIGINT, sigint_handler)
 # Connect to the sqlite database
 db = sqlite3.connect(DATABASE)
 
-# Instantiate a sensor object
+# Instantiate a sensor object for temperature, humidity, and float sensors
 sensors = Sensors(SUMP_PUMP_INPUT_PIN, LOW_TEMP_THRESHOLD, HIGH_HUMIDITY_THRESHOLD)
 
 # Instantiate an e-mail object for alerts
 email = Email(SENDER_EMAIL, RECIPIENT_EMAIL, SMTP_SERVER)
 
 # Creation timer object with 1 second timer
-timer = Timer(sensors,SAMPLE_PERIOD,db,email)
-signal.signal(signal.SIGALRM, timer.timer_handler)
+events = Events(sensors,SAMPLE_PERIOD,db,email)
+signal.signal(signal.SIGALRM, events.timer_handler)
 signal.setitimer(signal.ITIMER_REAL, 1, 1)
 
-# Continuously loop blocking on timer signal
-while True:
-    signal.pause()      # block until periodic timer fires, then repeat
+# Connect to MQTT broker and subscribe to all water leak sensors
+client = mqtt.Client()
+ret = client.connect(BROKER_IP, BROKER_PORT, MQTT_KEEPALIVE)
+if ret != 0:
+    logging.error('MQTT connect return code: {}'.format(ret))
+client.on_message = events.mqtt_message_handler
+for sensor in WATER_SENSORS:
+    client.subscribe("zigbee2mqtt/{}".format(sensor), qos=QOS)
+    logging.info('Subscribed to {}'.format(sensor))
+
+# Loop forever waiting for events
+try:
+    client.loop_forever()
+except KeyboardInterrupt:
+    signal.setitimer(signal.ITIMER_REAL, 0, 0)   # Disable interval timer
+    client.disconnect()
+    db.close()
+    logging.info('Terminating due to KeyboardInterrupt.')
