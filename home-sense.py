@@ -31,8 +31,13 @@ VERSION = 0.1
 CONFIG_FILENAME = 'home-sense.conf'
 TEMPERATURE_HYSTERESIS = 1.0
 HUMIDITY_HYSTERESIS = 2.0
+SUMP_PUMP_INPUT_PIN = 21   # GPIO BCM input pin for sump pump float switch
 MQTT_KEEPALIVE = 60
 QOS = 0
+# Alarms
+LOW_TEMPERATURE_ALARM = 1
+HUMIDITY_ALARM = 2
+SUMP_PUMP_ALARM = 3
 
 ## Class definitions ###
 
@@ -40,7 +45,7 @@ class Email:
     ''' Class to encapsulate methods to send an alert email
         Assumes an SMTP server is available.
     '''
-    def __init__(self,from_address, to_address, server):
+    def __init__(self, from_address, to_address, server):
         ''' Function to send a warning email - assumes server running locally to forward mail
         '''
         self.to_address = to_address        
@@ -69,33 +74,31 @@ class Email:
             s.quit()
 
 class Sensors:
-    ''' Class to store sensor related methods and data
+    ''' Class to handle sensor related methods, data, and alarms
     '''
-    def __init__(self, sump_pump_input_pin, low_temp_threshold, high_humidity_threshold):
+    def __init__(self, low_temp_threshold, high_humidity_threshold):
         ''' Constructor 
         ''' 
         # Set BCM input for float switch with pullup
-        self.sump_pump_input_pin = sump_pump_input_pin
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(sump_pump_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(SUMP_PUMP_INPUT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         # Create temperature/humidity sensor object for AHT20 sensor
         i2c = busio.I2C(board.SCL, board.SDA)
-        self.sensor = adafruit_ahtx0.AHTx0(i2c)
+        self.i2c_sensor = adafruit_ahtx0.AHTx0(i2c)
 
         # Temp and humidity thresholds to trigger an alert
         self.LOW_TEMP_THRESHOLD = low_temp_threshold
         self.HIGH_HUMIDITY_THRESHOLD = high_humidity_threshold
 
     def get_temperature(self):
-        return self.sensor.temperature
+        return self.i2c_sensor.temperature
 
     def get_humidity(self):
-        return self.sensor.relative_humidity
+        return self.i2c_sensor.relative_humidity
 
     def get_sump_pump(self):
-        return GPIO.input(self.sump_pump_input_pin)
-
+        return GPIO.input(SUMP_PUMP_INPUT_PIN)
 
 class Events:
     ''' Event class used to handle timer and MQTT messages
@@ -105,13 +108,10 @@ class Events:
         '''
         self.sensors = sensors
         self.sample_period = sample_period
-
-        # flags to indicate when temp and humidity have passed a threshold
-        self.low_temp_flag = False
-        self.high_humidity_flag = False
-        self.sump_alarm = False
-        self.water_leak_alarm = False
         self.email = email
+
+        # Initialize a list to store alarms that occur
+        self.alarms = []
 
         # initialize tick counter
         self.ticks = 0
@@ -152,51 +152,51 @@ class Events:
             logging.debug("{} records deleted.".format(self.cursor.rowcount))
             self.db.commit()
 
-        # Next, examine sensor values and send alerts as needed
+        # Next, examine sensor values and send alerts if alarm state changes
 
         # Check sump switch:
         # store samples in a list of last n samples
         # if last n samples are high send an alert
         self.sump_samples = [sump] + self.sump_samples[0:-1]
-        if all(self.sump_samples) and not self.sump_alarm:
-            self.sump_alarm = True
+        if all(self.sump_samples) and SUMP_PUMP_ALARM not in self.alarms:
             message = 'SUMP PUMP ALARM: {}'.format(datetime.now())
             logging.info(message)
             self.email.send("SUMP PUMP ALARM!", message)
+            self.alarms.append(SUMP_PUMP_ALARM)
         # if last n samples are low, turn off alarm if it is on
-        elif not any(self.sump_samples) and self.sump_alarm:
-            self.sump_alarm = False
+        elif not any(self.sump_samples) and SUMP_PUMP_ALARM in self.alarms:
             message = 'Sump pump sensor returned to normal: {}'.format(datetime.now())
             logging.info(message)
             self.email.send("Sump pump returned to normal", message)
+            self.alarms.remove(SUMP_PUMP_ALARM)
 
         # Next, check temperature value; send an alert if it falls below a preset threshold
         if temperature < sensors.LOW_TEMP_THRESHOLD:
-            if not self.low_temp_flag:
+            if LOW_TEMPERATURE_ALARM not in self.alarms:
                 message = "The house temperature has fallen to: {} degrees C!".format(temperature)
                 logging.info('{}: {}'.format(datetime.now(),message))
                 self.email.send('Home temperature warning!', message)
-                self.low_temp_flag = True
+                self.alarms.append(LOW_TEMPERATURE_ALARM)
             # Turn flag off - with hysteresis
             elif temperature > sensors.LOW_TEMP_THRESHOLD + TEMPERATURE_HYSTERESIS:
                 message = "The house temperature is now risen to {} degrees C.".format(temperature)
                 logging.info('{}: {}'.format(datetime.now(),message))
                 self.email.send('Home temperature update', message)
-                self.low_temp_flag = False
+                self.alarms.remove(LOW_TEMPERATURE_ALARM)
 
         # Next, check humidity value; send an alert if it rises above a preset threshold
         if humidity > sensors.HIGH_HUMIDITY_THRESHOLD:
-            if not self.high_humidity_flag:
+            if HUMIDITY_ALARM not in self.alarms:
                 message = "The basement humidity has risen to: {}%!".format(humidity)
-                logging.info('{}: {}'.format(datetime.now(),message))
                 self.email.send('Home humidity warning!', message)
-                self.high_humidity_flag = True
+                logging.info('{}: {}'.format(datetime.now(),message))
+                self.alarms.append(HUMIDITY_ALARM)
             # Turn flag off - with hysteresis
             elif humidity < sensors.HIGH_HUMIDITY_THRESHOLD - HUMIDITY_HYSTERESIS:
                 message = "The basement humidity has now fallen to: {}%.".format(humidity)
-                logging.info('{}: {}'.format(datetime.now(),message))
                 self.email.send('Home humidity update', message)
-                self.high_humidity_flag = False
+                logging.info('{}: {}'.format(datetime.now(),message))
+                self.alarms.remove(HUMIDITY_ALARM)
 
     def mqtt_message_handler(self, client, data, msg):
         ''' MQTT message handler
@@ -205,15 +205,19 @@ class Events:
         message = str(msg.payload.decode("utf-8"))
         status = json.loads(message) # Parse JSON message from sensor
         logging.info('Message received {}: {}'.format(datetime.now(), message))
-        sensor = msg.topic.split('/')[1]   # Extract sensor "friendly name" from MQTT topic
-        if status['water_leak'] and not self.water_leak_alarm:
-            self.email.send("Water lealk alarm detected on {}!".format(sensor), message)
-            self.water_leak_alarm = True
-        elif not status['water_leak'] and self.water_leak_alarm:
-            self.email.send("Water lealk alarm stopped on {}".format(sensor), message)
-            self.water_leak_alarm = False
+        water_sensor = msg.topic.split('/')[1]   # Extract sensor "friendly name" from MQTT topic
+        
+        if status['water_leak'] and water_sensor not in self.alarms:
+            self.email.send("Water lealk alarm detected for {}!".format(water_sensor), message)
+            logging.info('Water lealk alarm detected for {}!'.format(water_sensor))
+            self.alarms.append(water_sensor)
+        elif not status['water_leak'] and water_sensor in self.alarms:
+            self.email.send("Water lealk alarm stopped for {}".format(water_sensor), message)
+            logging.info('Water lealk alarm stopped for {}!'.format(water_sensor))
+            self.alarms.remove(water_sensor)
         if status['battery_low'] == True:
-            self.email.send("Low battery detected on {}!".format(sensor), message)
+            self.email.send('Low battery detected on {}!'.format(water_sensor), message)
+            logging.info('Low battery detected on {}!'.format(water_sensor))
 
 def sigint_handler(signum, frame):
     ''' SIGINT handler - exit gracefully
@@ -234,7 +238,6 @@ try:
     SENDER_EMAIL = conf.get('home-sense', 'sender_email')
     RECIPIENT_EMAIL = conf.get('home-sense', 'recipient_email')
     SMTP_SERVER = conf.get('home-sense', 'smtp_server')
-    SUMP_PUMP_INPUT_PIN = conf.getint('home-sense', 'sump_pump_input_pin')
 except configparser.NoOptionError as e:
     print('Missing parameter in configuration file: {}'.format(e))
     sys.exit(os.EX_CONFIG)
@@ -268,8 +271,8 @@ signal.signal(signal.SIGINT, sigint_handler)
 # Connect to the sqlite database
 db = sqlite3.connect(DATABASE)
 
-# Instantiate a sensor object for temperature, humidity, and float sensors
-sensors = Sensors(SUMP_PUMP_INPUT_PIN, LOW_TEMP_THRESHOLD, HIGH_HUMIDITY_THRESHOLD)
+# Instantiate a sensor object for temperature, humidity, sump pump, and water leaks
+sensors = Sensors(LOW_TEMP_THRESHOLD, HIGH_HUMIDITY_THRESHOLD)
 
 # Instantiate an e-mail object for alerts
 email = Email(SENDER_EMAIL, RECIPIENT_EMAIL, SMTP_SERVER)

@@ -30,11 +30,9 @@ with `php` enabled to serve the `chart.php` file to display a record of data val
 Place the program and the configuration file `home-sense.conf`
 in the same folder. Adjust the settings in the configuration file to reflect your local settings.
 In particular, you can set the thresholds at which alert e-mails will be triggered.
-
-Note that to support alert e-mails, this program assumes access to an SMTP server for sending messages.
 You will also need to specify the "friendly names" of any Zigbee water
 leak sensors along with the MQTT broker address for reaching the
-Zigbee network (using `zigbee2mqtt`).
+Zigbee network. An SMTP server needs to be specified to support e-mail alerts.
 
 A PHP webfile is also included to visualize charts of the logged sensor data
 in a convenient webpage. This should be placed in a folder that can
@@ -44,7 +42,6 @@ and the SQLite data file needs to be readable by the web server user (typically 
 
 ## Security considerations
 
-Note this assumes the presence of a local web server (which can increase potential security risks)
-and is intended to be run on a private home network.
-This program is provided "as is" without any warranty, expressed or implied, about merchantability or 
-fitness for a particular purpose. Your mileage may vary.
+Note this assumes a web server is running locally (which can increase potential security risks).
+This program is intended to be run on a private home network and is provided "as is" without any warranty, 
+expressed or implied, about merchantability or fitness for a particular purpose. Your mileage may vary.
