@@ -26,47 +26,35 @@
    <script>
       // Data for last day
       var dayTemperature = {
-      x: [  
-      {% for row in day_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in day_data %}
-         {{row[1]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in day_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in day_data %}
+         {{row[1]}},{% endfor %}
+         ],
       name: 'Temperature',
       type: 'scatter'
       };
 
       var dayHumidity = {
-      x: [  
-      {% for row in day_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in day_data %}
-         {{row[2]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in day_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in day_data %}
+         {{row[2]}},{% endfor %}
+         ],
       name: 'Humidity',
       yaxis: 'y2',
       type: 'scatter'
       };
 
       var dayPressure = {
-      x: [  
-      {% for row in day_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in day_data %}
-         {{row[3]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in day_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in day_data %}
+         {{row[3]}},{% endfor %}
+         ],
       name: 'Pressure',
       yaxis: 'y3',
       type: 'scatter'
@@ -77,47 +65,35 @@
 
      // Data for last month
      var monthTemperature = {
-      x: [  
-      {% for row in month_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in month_data %}
-         {{row[1]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in month_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in month_data %}
+            {{row[1]}},{% endfor %}
+         ],
       name: 'Temperature',
       type: 'scatter'
       };
 
       var monthHumidity = {
-      x: [  
-      {% for row in month_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in month_data %}
-         {{row[2]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in month_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in month_data %}
+            {{row[2]}},{% endfor %}
+         ],
       name: 'Humidity',
       yaxis: 'y2',
       type: 'scatter'
       };
 
       var monthPressure = {
-      x: [  
-      {% for row in month_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in month_data %}
-         {{row[3]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in month_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in month_data %}
+            {{row[3]}},{% endfor %}
+         ],
       name: 'Pressure',
       yaxis: 'y3',
       type: 'scatter'
@@ -128,47 +104,35 @@
 
      // Data for last year
      var yearTemperature = {
-      x: [  
-      {% for row in year_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in year_data %}
-         {{row[1]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in year_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in year_data %}
+         {{row[1]}},{% endfor %}
+         ],
       name: 'Temperature',
       type: 'scatter'
       };
 
       var yearHumidity = {
-      x: [  
-      {% for row in year_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in year_data %}
-         {{row[2]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in year_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in year_data %}
+            {{row[2]}},{% endfor %}
+         ],
       name: 'Humidity',
       yaxis: 'y2',
       type: 'scatter'
       };
 
       var yearPressure = {
-      x: [  
-      {% for row in year_data %}
-            '{{row[0]}}',
-      {% endfor %}   
-      ],
-      y: [  
-      {% for row in year_data %}
-         {{row[3]}},
-      {% endfor %}
-      ],
+      x: [  {% for row in year_data %}
+            '{{row[0]}}',{% endfor %}   
+         ],
+      y: [  {% for row in year_data %}
+            {{row[3]}},{% endfor %}
+         ],
       name: 'Pressure',
       yaxis: 'y3',
       type: 'scatter'
