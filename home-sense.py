@@ -107,7 +107,7 @@ for sensor in SENSORS:
 # If web interface is enabled, start the flask web server in a separate thread
 if WEB_INTERFACE:
     logging.info('Web interface ENABLED')
-    server = FlaskThread(WEB_SERVER_PORT, DATABASE)
+    server = FlaskThread(WEB_SERVER_PORT, DATABASE, LOG_FILE)
     server.start()
 else:
     logging.info('Web interface DISABLED')

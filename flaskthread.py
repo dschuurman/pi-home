@@ -19,15 +19,17 @@ NUMBER_OF_PLOT_POINTS = 1000
 class FlaskThread(Thread):
     ''' Class definition to run flask to provide web pages to display sensor data
     '''
-    def __init__(self, port, database):
+    def __init__(self, port, database, logfile):
         self.port = port
         self.database = database
+        self.logfile = logfile
         Thread.__init__(self)
 
         # Create a flask object and initialize web pages
         self.app = Flask(__name__)
         self.app.debug = True
         self.app.add_url_rule('/', 'chart', self.chart)
+        self.app.add_url_rule('/log', 'log', self.log)
 
     def run(self):
         # Start the waitress WSGI server on the specified port
@@ -49,3 +51,12 @@ class FlaskThread(Thread):
         skip = math.ceil(count/NUMBER_OF_PLOT_POINTS)  # Number of rows to skip over for each point to ensure number of plot points stays reasonable
         year_data = self.cursor.execute(f"SELECT datetime,temperature,humidity,pressure FROM {TABLE} where datetime > datetime('now','localtime','-365 day') AND ROWID % {skip} = 0").fetchall()
         return render_template('chart.html', day_data=day_data, month_data=month_data, year_data=year_data)
+
+    def log(self):
+        ''' Returns webpage /log
+        '''
+        f = open(self.logfile, 'r')
+        log = f.read()
+        f.close()
+        log = log.replace('\n', '<br>\n')
+        return render_template('log.html', log=log)
