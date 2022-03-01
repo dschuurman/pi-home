@@ -111,7 +111,7 @@ logging.info(f'Default lights OFF time set to: {lights_out_time.strftime("%H:%M"
 signal.signal(signal.SIGINT, sigint_handler)
 
 # Instantiate a sensor object to track state of sensor values
-sensors = Sensors(LOW_TEMP_THRESHOLD, HIGH_HUMIDITY_THRESHOLD)
+sensors = Sensors(SENSORS, LOW_TEMP_THRESHOLD, HIGH_HUMIDITY_THRESHOLD)
 
 # Create scheduler to control lights and periodically sample sensors
 # Set delayfunc to run with (at most) 1 second sleep so that it can periodically wake up to adjust 
@@ -143,7 +143,7 @@ lights = Lights(BULBS, OUTLETS, BRIGHTNESS, scheduler, client, CITY, lights_out_
 
 # Start a flask web server in a separate thread
 logging.info('Starting web interface...')
-server = FlaskThread(WEB_SERVER_PORT, lights, sensors, DATABASE, LOG_FILE)
+server = FlaskThread(WEB_SERVER_PORT, lights, sensors, DATABASE, LOG_FILE, VERSION)
 server.start()
 
 # Loop forever waiting for events

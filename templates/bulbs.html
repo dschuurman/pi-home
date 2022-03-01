@@ -1,0 +1,69 @@
+<html>
+<!-- For details, see: https://github.com/dschuurman/home-sense -->
+<head>
+    <title>Home-Sense Automation</title>
+    <!-- Make the webpage more responsive to mobile browswers -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        {% include 'style.css' %}
+    </style>
+</head>
+
+<body onload="document.getElementById('bulbs').className='active';">
+ {% include 'header.html' %}
+
+
+<h2>Smart Bulbs</h2>
+This section provides control and setting for one or more smart light bulbs.
+<br>The Zigbee "friendly names" of the configued light bulbs are: {{ lights }}
+
+<p>Current state of smart bulbs: 
+{% if bulb_state %}
+<b>ON</b>
+{% else %}
+<b>OFF</b>
+{% endif %}
+<form action="" method="post">
+    <button name="bulb_state" type="submit" value="on">Bulbs ON</button>
+    <button name="bulb_state" type="submit" value="off">Bulbs OFF</button>
+</form>
+
+<b>Brightness setting for smart bulbs</b>
+<br>
+<form action="" method=post>
+    <input type="range" id="brightness" name="brightness" value={{brightness}} min="0" max="254"
+        step="1" oninput="document.getElementById('setting').innerHTML = this.value;">
+    <span id="setting">{{brightness}}</span>
+    <br><input type="submit" value="Set Brightness">
+</form>
+
+<b>Enable Timer Control of Smart Bulbs</b>
+<br>Currently the timer control of the bulbs is: 
+{% if bulb_timer %}
+<b>ON</b>
+{% else %}
+<b>OFF</b>
+{% endif %}
+
+<form action="" method="post">
+    <button name="bulb_timer" type="submit" value="on">ENABLE</button>
+    <button name="bulb_timer" type="submit" value="off">DISABLE</button>
+</form>
+
+<h2>Timer Setting</h2>
+The lights will be automatically turned on and off each day.
+The daily on-time is set to the dusk time and the off-time can be adjusted below.
+<br>The current settings are as follows:
+<br>Timer ON time: {{on_time}}
+<br>Timer OFF time: {{off_time}}
+<p>
+<form method="POST" action="/off-time">
+    Select a new timer off-time:
+    <br><input type="time" name="off_time">
+    <input type="submit" value="Set new time">
+</form>
+</p>
+
+
+</body>
+</html>

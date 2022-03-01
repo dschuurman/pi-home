@@ -3,16 +3,29 @@
 <head>
    <title>home-sense data</title>
    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <style>
+      {% include 'style.css' %}
+  </style>
 </head>
 
-<body>
-   <h1>Home-Sense Datalog</h1>
+<body onload="document.getElementById('sensors').className='active';">
+   {% include 'header.html' %}
+   <h2>Sensor status and data charts</h2>
 
-   Last readings at: {{day_data[-1][0]}}
+   This section provides monitoring for one or more Zigbee sensors.
+   <br>The Zigbee "friendly names" of the configued sensors are: 
+   {% for sensor in sensor_list %} 
+    {{sensor}},
+   {% endfor %}
+
+   <p>Last readings at: {{day_data[-1][0]}}
    <table>
    <tr><td>Temperature: </td><td><b>{{day_data[-1][1]}} </b> &deg;C</td></tr>
    <tr><td>Relative Humidity: </td><td><b>{{day_data[-1][2]}} </b>% </td></tr>
    <tr><td>Air Pressure: </td><td><b>{{day_data[-1][3]}} </b> hPa </td></tr>
+   <tr><td>Water Leak</td><td> <b>{{water_leak}}</b> </td></tr>
+   <tr><td>Low Battery</td><td> <b>{{low_battery}}</b> </td></tr>
    </table>
 
    <hr>
@@ -175,8 +188,6 @@
    layout.title = 'Sensor data for the last year';
    Plotly.newPlot('chart_year', yearData, layout);
    </script>
-
-   <p>View <a href="/log">log file</a>.</p>
 
 </body>
 </html>

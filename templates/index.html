@@ -5,114 +5,49 @@
     <!-- Make the webpage more responsive to mobile browswers -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        table, td {border: 1px solid black;}
-        td {padding: 10px; vertical-align: top;}
+        {% include 'style.css' %}
     </style>
 </head>
 
-<body>
-    <h1>Home-Sense Automation of Lights and Sensors</h1>
-    <p>
-        The following makes use of the <a href="https://www.zigbee2mqtt.io/">zigbee2mqtt</a> library
-        to manage of a variety of Zigbee home lights, outlets, and sensors. For more information about
-        this project visit the <a href="https://github.com/dschuurman/home-sense">home-sense project page</a>.
-    </p>
+<body onload="document.getElementById('home').className='active';">
+    {% include 'header.html' %}
 
+    <h2>Status</h2>
+    <p>The configured Zigbee devices include:
+    <ul>
+        {% for device in device_list %} 
+           <li>{{device}}</li>
+        {% endfor %}
+    </ul>
     <table>
-        <tr><td>
-            <h2>Sensor Data</h2>
-            <b>Latest sensor data:</b> {{ sensor_data }}
-            <br>To view plot of historical sensor data, click <a href="/chart">here</a>.
-        </td></tr>
-        <tr><td>
-            <h2>Smart Bulbs</h2>
-            This section provides control and setting for one or more smart light bulbs.
-            <br>The Zigbee "friendly names" of the configued light bulbs are: {{ lights }}
-            
-            <p>Current state of smart bulbs: 
+        <tr><td>Temperature: </td><td><b> {{temperature}} </b> &deg;C</td></tr>
+        <tr><td>Relative Humidity: </td><td><b> {{humidity}} </b>% </td></tr>
+        <tr><td>Air Pressure: </td><td><b> {{pressure}} </b> hPa </td></tr>
+        <tr><td>Water Leak</td><td> <b>{{water_leak}}</b> </td></tr>
+        <tr><td>Low Battery</td><td> <b>{{low_battery}}</b> </td></tr>
+
+        <tr><td>Smart bulbs</td>
+        <td>
             {% if bulb_state %}
             <b>ON</b>
             {% else %}
             <b>OFF</b>
             {% endif %}
-            <form action="" method="post">
-                <button name="bulb_state" type="submit" value="on">Bulbs ON</button>
-                <button name="bulb_state" type="submit" value="off">Bulbs OFF</button>
-            </form>
-
-            <b>Brightness setting for smart bulbs</b>
-            <br>
-            <form action="" method=post>
-                <input type="range" id="brightness" name="brightness" value={{brightness}} min="0" max="254"
-                    step="1" oninput="document.getElementById('setting').innerHTML = this.value;">
-                <span id="setting">{{brightness}}</span>
-                <br><input type="submit" value="Set Brightness">
-            </form>
-
-            <b>Enable Timer Control of Smart Bulbs</b>
-            <br>Currently the timer control of the bulbs is: 
-            {% if bulb_timer %}
-            <b>ON</b>
-            {% else %}
-            <b>OFF</b>
-            {% endif %}
-            
-            <form action="" method="post">
-                <button name="bulb_timer" type="submit" value="on">ENABLE</button>
-                <button name="bulb_timer" type="submit" value="off">DISABLE</button>
-            </form>
         </td></tr>
-        <tr><td>
-            <h2>Smart Outlets</h2>
-            This section provides control and setting for one or more smart outlets.
-            <br>The Zigbee "friendly names" of the configued outlets are: {{ outlets }} 
-            
-            <p>Current state of outlets: 
+        <tr><td>Bulb brightness</td><td> {{brightness}} </td></tr>
+        <tr><td>Smart outlets</td>
+        <td>
             {% if outlet_state %}
             <b>ON</b>
             {% else %}
             <b>OFF</b>
             {% endif %}
-            <br>
-            <form action="" method="post">
-                <button name="outlet_state" type="submit" value="on">Outlets ON</button>
-                <button name="outlet_state" type="submit" value="off">Outlets OFF</button>
-            </form>
-
-            <b>Enable Timer Control of Outlet(s)</b>
-            <br>The outlets may also be controlled by the timer.
-            <br>This can be helpful to control indoor lights while away on vacation.
-            <br>Currently the timer control of the outlet(s) is:
-            {% if outlet_timer %}
-            <b>ON</b>
-            {% else %}
-            <b>OFF</b>
-            {% endif %}
-            <br>
-            <form action="" method="post">
-                <button name="outlet_timer" type="submit" value="on">ENABLE</button>
-                <button name="outlet_timer" type="submit" value="off">DISABLE</button>
-            </form>
         </td></tr>
-        <tr><td>
-            <h2>Timer Setting</h2>
-            The lights will be automatically turned on and off each day.
-            The daily on-time is set to the dusk time and the off-time can be adjusted below.
-            <br>The current settings are as follows:
-            <br>Timer ON time: {{on_time}}
-            <br>Timer OFF time: {{off_time}}
-            <p>
-            <form method="POST" action="/off-time">
-                Select a new timer off-time:
-                <br><input type="time" name="off_time">
-                <input type="submit" value="Set new time">
-            </form>
-            </p>
-        </td></tr>
+        <tr><td>Timer control of Bulbs</td><td> {{bulb_timer}} </td>
+        <tr><td>Timer control of Outlets</td><td> {{outlet_timer}} </td>
+        <tr><td>Timer ON time</td><td> {{on_time}} </td></tr>
+        <tr><td>Timer OFF time</td><td> {{off_time}} </td></tr>
     </table>
-    <p>
-        View <a href="/log">log file</a>.
-    </p>
 
 </body>
 </html>

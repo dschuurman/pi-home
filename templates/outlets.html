@@ -1,0 +1,61 @@
+<html>
+<!-- For details, see: https://github.com/dschuurman/home-sense -->
+<head>
+    <title>Home-Sense Automation</title>
+    <!-- Make the webpage more responsive to mobile browswers -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        {% include 'style.css' %}
+    </style>
+</head>
+
+<body onload="document.getElementById('outlets').className='active';">
+{% include 'header.html' %}
+
+<h2>Smart Outlets</h2>
+This section provides control and setting for one or more smart outlets.
+<br>The Zigbee "friendly names" of the configued outlets are: {{ outlets }} 
+
+<p>Current state of outlets: 
+{% if outlet_state %}
+<b>ON</b>
+{% else %}
+<b>OFF</b>
+{% endif %}
+<br>
+<form action="" method="post">
+    <button name="outlet_state" type="submit" value="on">Outlets ON</button>
+    <button name="outlet_state" type="submit" value="off">Outlets OFF</button>
+</form>
+
+<b>Enable Timer Control of Outlet(s)</b>
+<br>The outlets may also be controlled by the timer.
+<br>This can be helpful to control indoor lights while away on vacation.
+<br>Currently the timer control of the outlet(s) is:
+{% if outlet_timer %}
+<b>ON</b>
+{% else %}
+<b>OFF</b>
+{% endif %}
+<br>
+<form action="" method="post">
+    <button name="outlet_timer" type="submit" value="on">ENABLE</button>
+    <button name="outlet_timer" type="submit" value="off">DISABLE</button>
+</form>
+
+<h2>Timer Setting</h2>
+The lights will be automatically turned on and off each day.
+The daily on-time is set to the dusk time and the off-time can be adjusted below.
+<br>The current settings are as follows:
+<br>Timer ON time: {{on_time}}
+<br>Timer OFF time: {{off_time}}
+<p>
+<form method="POST" action="/off-time">
+    Select a new timer off-time:
+    <br><input type="time" name="off_time">
+    <input type="submit" value="Set new time">
+</form>
+</p>
+
+</body>
+</html>

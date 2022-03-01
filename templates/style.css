@@ -1,0 +1,27 @@
+table, td {border: 1px solid black;}
+td {padding: 10px; vertical-align: top;}
+
+.header {
+    background-color: lightgrey;
+    padding: 20px 10px;
+  }
+  
+.header a {
+    color: black;
+    text-align: center;
+    padding: 12px;
+    text-decoration: none;
+    font-size: 18px; 
+    line-height: 25px;
+    border-radius: 5px;
+  }
+  
+.header a:hover {
+    background-color: lightsteelblue;
+    color: black;
+  }
+  
+.header a.active {
+    background-color: royalblue;
+    color: white;
+  }

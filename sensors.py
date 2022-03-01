@@ -37,10 +37,11 @@ class Sensors:
     ''' class to manage device state for lights and outlets and sensors
     '''
 
-    def __init__(self, low_temp_threshold, high_humidity_threshold):
+    def __init__(self, sensor_list, low_temp_threshold, high_humidity_threshold):
         ''' Constructor: connect to MQTT broker and initialize state variables
             control bulbs, outlets, and store and retrieve sensor states
         '''
+        self.sensor_list = sensor_list
         # Temp and humidity thresholds to trigger an alert
         self.low_temp_threshold = low_temp_threshold
         self.high_hunidity_threshold = high_humidity_threshold

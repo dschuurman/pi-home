@@ -4,17 +4,21 @@
     <title>pi-lights Log</title>
     <!-- Make the webpage responsive to mobile browswers -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        {% include 'style.css' %}
+    </style>
 </head>
 
-<body>
+<body onload="document.getElementById('log').className='active';">
+    {% include 'header.html' %}
+
     <h2>pi-lights Log</h2>
     <hr>
     <p>
         {{log|safe}}
     </p>
     <hr>
-    <a href="/">Back to main page</a>
-
 </body>
 
 </html>
