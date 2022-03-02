@@ -50,10 +50,13 @@ The daily on-time is set to the dusk time and the off-time can be adjusted below
 <br>Timer ON time: {{on_time}}
 <br>Timer OFF time: {{off_time}}
 <p>
-<form method="POST" action="/off-time">
+<form method="POST" method="post">
     Select a new timer off-time:
     <br><input type="time" name="off_time">
     <input type="submit" value="Set new time">
+    {% if timer_msg != '': %}
+    <b>{{timer_msg}}</b>
+    {% endif %}
 </form>
 </p>
 

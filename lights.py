@@ -151,8 +151,6 @@ class Lights:
     def turn_on_bulbs(self):
         ''' Method to turn on all bulbs
         '''
-        if self.bulbs == None:
-            return
         self.lock.acquire()
         for bulb in self.bulbs:
             (rc, msg_id) = self.client.publish(f'zigbee2mqtt/{bulb}/set/state', 'ON')
@@ -165,8 +163,6 @@ class Lights:
     def turn_off_bulbs(self):
         ''' Method to turn off all bulbs
         '''
-        if self.bulbs == None:
-            return
         self.lock.acquire()
         for bulb in self.bulbs:
             (rc, msg_id) = self.client.publish(f'zigbee2mqtt/{bulb}/set/state', 'OFF')
@@ -179,8 +175,6 @@ class Lights:
     def turn_on_outlets(self):
         ''' Method to turn on outlets
         '''
-        if self.outlets == None:
-            return
         self.lock.acquire()
         for outlet in self.outlets:
             (rc, msg_id) = self.client.publish(f'zigbee2mqtt/{outlet}/set/state', 'ON')
@@ -193,8 +187,6 @@ class Lights:
     def turn_off_outlets(self):
         ''' Method to turn off outlets
         '''
-        if self.outlets == None:
-            return
         self.lock.acquire()
         for outlet in self.outlets:
             (rc, msg_id) = self.client.publish(f'zigbee2mqtt/{outlet}/set/state', 'OFF')
@@ -208,8 +200,6 @@ class Lights:
         ''' Method to set brightness of lights
         '''
         self.brightness = value
-        if self.bulbs == None:
-            return
         for bulb in self.bulbs:
             (rc, msg_id) = self.client.publish(f'zigbee2mqtt/{bulb}/set/brightness', self.brightness)
             if rc != 0:

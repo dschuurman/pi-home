@@ -36,7 +36,6 @@ class FlaskThread(Thread):
         self.app.add_url_rule('/', 'index', self.index)
         self.app.add_url_rule('/bulbs', 'bulbs', self.bulbs, methods=['GET', 'POST'])
         self.app.add_url_rule('/outlets', 'outlets', self.outlets, methods=['GET', 'POST'])
-        self.app.add_url_rule('/off-time', 'off-time', self.off_time, methods=['POST'])
         self.app.add_url_rule('/sensors', 'sensors', self.sensors_page)
         self.app.add_url_rule('/log', 'log', self.log)
         self.app.add_url_rule('/about', 'about', self.about)
@@ -57,27 +56,24 @@ class FlaskThread(Thread):
         # pass the output state to index.html to display current state on webpage
         return render_template('index.html', device_list=device_list, temperature=self.sensors.get_temperature(), humidity=self.sensors.get_humidity(), pressure=self.sensors.get_pressure(), on_time=on_time, off_time=off_time, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery)
 
-
     # Methods for each flask webpage route
     def bulbs(self):
-        ''' Returns index.html webpage, methods=['GET', 'POST']
+        ''' Returns bulbs.html webpage, methods=['GET', 'POST']
         '''
         # Get lights on and off times
         on_time=self.lights.get_next_dusk_time().strftime("%H:%M")
         off_time=self.lights.get_next_lights_out_time().strftime("%H:%M")
-
-        # query for latest temperature data
-        sensor_data = f'Temperature: {self.sensors.get_temperature()} degC | Humidity {self.sensors.get_humidity()} % | Pressure {self.sensors.get_pressure()} hPa'
+        timer_msg = ''
 
         # Process POST actions if requested
         if request.method == 'POST':
             # Get form post as a dictionary
             form_dict = request.form
-            if form_dict.get('light_state', None) == 'on':
+            if form_dict.get('bulb_state', None) == 'on':
                 # turn bulbs on
                 self.lights.turn_on_bulbs()
                 logging.info(f'Bulb(s) turned on via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('light_state', None) == 'off':
+            elif form_dict.get('bulb_state', None) == 'off':
                 # turn bulbs off
                 self.lights.turn_off_bulbs()
                 logging.info(f'Bulb(s) turned off via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
@@ -89,64 +85,41 @@ class FlaskThread(Thread):
                 # Disable timer control of lights
                 self.lights.bulb_timer = False
                 logging.info(f'Timer control of bulbs DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('outlet_state', None) == 'on':
-                # Turn outlet on
-                self.lights.turn_on_outlets()
-                logging.info(f'Outlet(s) turned on via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('outlet_state', None) == 'off':
-                # Turn outlet off
-                self.lights.turn_off_outlets()
-                logging.info(f'Outlet(s) turned off via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('outlet_timer', None) == 'on':
-                # Enable timer control of outlet
-                self.lights.outlet_timer = True
-                logging.info(f'Timer control of outlet ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('outlet_timer', None) == 'off':
-                # Disable timer control of outlet
-                self.lights.outlet_timer = False
-                logging.info(f'Timer control of outlet DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
             elif form_dict.get('brightness', None) != None:
                 self.lights.set_brightness(int(form_dict.get('brightness')))
+            elif form_dict.get('off_time', None) != None:
+                time = request.form['off_time']
+                if time == '':
+                    logging.error('Invalid lights out time requested.')
+                    timer_msg = 'Invalid time!'
+                else:
+                    t = time.split(':')
+                    self.lights.set_lights_out_time(int(t[0]),int(t[1]))
+                    # Update lights on and off times
+                    on_time=self.lights.get_next_dusk_time().strftime("%H:%M")
+                    off_time=self.lights.get_next_lights_out_time().strftime("%H:%M")
+                    timer_msg = 'Time update successful!'
 
             # Return success (201) and stay on the same page
-            return render_template('bulbs.html', sensor_data=sensor_data, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness)), 200
+            return render_template('bulbs.html', timer_msg=timer_msg, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness)), 200
 
         elif request.method == 'GET':
             # pass the output state to index.html to display current state on webpage
-            return render_template('bulbs.html', sensor_data=sensor_data, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness))
+            return render_template('bulbs.html', on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness))
 
-    # Methods for each flask webpage route
     def outlets(self):
-        ''' Returns index.html webpage, methods=['GET', 'POST']
+        ''' Returns outlets.html webpage, methods=['GET', 'POST']
         '''
         # Get lights on and off times
         on_time=self.lights.get_next_dusk_time().strftime("%H:%M")
         off_time=self.lights.get_next_lights_out_time().strftime("%H:%M")
-
-        # query for latest temperature data
-        sensor_data = f'Temperature: {self.sensors.get_temperature()} degC | Humidity {self.sensors.get_humidity()} % | Pressure {self.sensors.get_pressure()} hPa'
+        timer_msg = ''
 
         # Process POST actions if requested
         if request.method == 'POST':
             # Get form post as a dictionary
             form_dict = request.form
-            if form_dict.get('light_state', None) == 'on':
-                # turn bulbs on
-                self.lights.turn_on_bulbs()
-                logging.info(f'Bulb(s) turned on via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('light_state', None) == 'off':
-                # turn bulbs off
-                self.lights.turn_off_bulbs()
-                logging.info(f'Bulb(s) turned off via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('bulb_timer', None) == 'on':
-                # Enable timer control of lights
-                self.lights.bulb_timer = True
-                logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('bulb_timer', None) == 'off':
-                # Disable timer control of lights
-                self.lights.bulb_timer = False
-                logging.info(f'Timer control of bulbs DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('outlet_state', None) == 'on':
+            if form_dict.get('outlet_state', None) == 'on':
                 # Turn outlet on
                 self.lights.turn_on_outlets()
                 logging.info(f'Outlet(s) turned on via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
@@ -162,17 +135,26 @@ class FlaskThread(Thread):
                 # Disable timer control of outlet
                 self.lights.outlet_timer = False
                 logging.info(f'Timer control of outlet DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-            elif form_dict.get('brightness', None) != None:
-                self.lights.set_brightness(int(form_dict.get('brightness')))
+            elif form_dict.get('off_time', None) != None:
+                time = request.form['off_time']
+                if time == '':
+                    logging.error('Invalid lights out time requested.')
+                    timer_msg = 'Invalid time!'
+                else:
+                    t = time.split(':')
+                    self.lights.set_lights_out_time(int(t[0]),int(t[1]))
+                    # Update lights on and off times
+                    on_time=self.lights.get_next_dusk_time().strftime("%H:%M")
+                    off_time=self.lights.get_next_lights_out_time().strftime("%H:%M")
+                    timer_msg = 'Time update successful!'
 
             # Return success (201) and stay on the same page
-            return render_template('outlets.html', sensor_data=sensor_data, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness)), 200
+            return render_template('outlets.html', timer_msg=timer_msg, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness)), 200
 
         elif request.method == 'GET':
             # pass the output state to index.html to display current state on webpage
-            return render_template('outlets.html', sensor_data=sensor_data, on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness))
+            return render_template('outlets.html', on_time=on_time, off_time=off_time, lights=self.lights.bulbs, outlets=self.lights.outlets, bulb_state=self.lights.bulb_state, bulb_timer=self.lights.bulb_timer, outlet_state=self.lights.outlet_state, outlet_timer=self.lights.outlet_timer, brightness=str(self.lights.brightness))
 
-    # Methods for each flask webpage route
     def sensors_page(self):
         ''' Returns chart.html webpage
         '''
@@ -195,19 +177,6 @@ class FlaskThread(Thread):
 
         self.db.close()
         return render_template('sensors.html', sensor_list=self.sensors.sensor_list, water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, day_data=day_data, month_data=month_data, year_data=year_data)
-
-    def off_time(self):
-        ''' Returns /off-time webpage, method=['POST']
-        '''
-        time = request.form['off_time']
-        if time == '':
-            logging.error('Invalid lights out time requested.')
-            return render_template('off-time.html', off_time="Invalid time"), 200
-        t = time.split(':')
-        self.lights.set_lights_out_time(int(t[0]),int(t[1]))
-
-        # Return a page showing new times and return success (201)
-        return render_template('off-time.html', off_time=self.lights.get_next_lights_out_time().strftime("%H:%M")), 200
 
     def log(self):
         ''' Returns webpage /log

@@ -46,18 +46,18 @@ conf.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), CONFIG_FILENA
 # Configuration settings with fallback values
 BROKER_IP = conf.get('home-sense', 'broker_ip', fallback="127.0.0.1")
 BROKER_PORT = conf.getint('home-sense', 'broker_port', fallback=1883)
-SENSORS = conf.get('home-sense', 'sensors', fallback=None)
-if SENSORS != None:
+SENSORS = conf.get('home-sense', 'sensors', fallback=[])
+if SENSORS != []:
     SENSORS = SENSORS.split(',')
     for i in range(len(SENSORS)):
         SENSORS[i] = SENSORS[i].strip()
-BULBS = conf.get('home-sense', 'bulbs', fallback=None)
-if BULBS != None:
+BULBS = conf.get('home-sense', 'bulbs', fallback=[])
+if BULBS != []:
     BULBS = BULBS.split(',')
     for i in range(len(BULBS)):
         BULBS[i] = BULBS[i].strip()
-OUTLETS = conf.get('home-sense', 'outlets', fallback=None)
-if OUTLETS != None:
+OUTLETS = conf.get('home-sense', 'outlets', fallback=[])
+if OUTLETS != []:
     OUTLETS = OUTLETS.split(',')
     for i in range(len(OUTLETS)):
         OUTLETS[i] = OUTLETS[i].strip()

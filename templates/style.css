@@ -4,6 +4,8 @@ td {padding: 10px; vertical-align: top;}
 .header {
     background-color: lightgrey;
     padding: 20px 10px;
+    white-space: nowrap;
+    overflow: hidden;
   }
   
 .header a {
@@ -11,9 +13,9 @@ td {padding: 10px; vertical-align: top;}
     text-align: center;
     padding: 12px;
     text-decoration: none;
-    font-size: 18px; 
-    line-height: 25px;
-    border-radius: 5px;
+    font-size: 16px; 
+    line-height: 20px;
+    border-radius: 4px;
   }
   
 .header a:hover {
