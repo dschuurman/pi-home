@@ -12,10 +12,12 @@ while ensuring they are not needlessly left on during the day.
 Furthermore, a feature to control one or more smart outlets provides the functionality 
 of a traditional light timer to control indoor lights while away on vacation.
 
-A basic web interface provides a means for configuration and manually controlling the
-lights and outlets and viewing plots of historical sensor data stored in a local SQLite database. 
-Furthermore, e-mail alerts can be triggered when sensor values 
-cross certain predefined thresholds (as defined in the configuration file) or a water leak or low battery is detected.
+A basic web interface running on the Raspberry Pi provides a means for configuration and manually controlling the
+lights and outlets and to view sensor data. One can also view plots of historical sensor data 
+which is stored in a local SQLite database. 
+Furthermore, e-mail alerts can be triggered when sensor values cross certain predefined thresholds 
+(as defined in the configuration file) or a water leak or low battery is detected.
+Note that all data and configuration settings are stored locally on the Raspberry Pi.
 
 # Installation
 

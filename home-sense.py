@@ -139,7 +139,8 @@ for sensor in SENSORS:
     logging.info(f'Subscribed to: {sensor}')
 
 # Create an object to control lights with smart bulbs and smart outlets
-lights = Lights(BULBS, OUTLETS, BRIGHTNESS, scheduler, client, CITY, lights_out_time)
+lights = Lights(BULBS, OUTLETS, BRIGHTNESS, scheduler, client, CITY)
+lights.set_lights_out_time(lights_out_time.hour, lights_out_time.minute)
 
 # Start a flask web server in a separate thread
 logging.info('Starting web interface...')

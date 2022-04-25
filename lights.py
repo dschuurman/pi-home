@@ -28,14 +28,18 @@ class Lights:
     ''' Lights class used to schedule and control lights
         using smart bulbs and smart outlets
     '''
-    def __init__(self, bulbs, outlets, brightness, scheduler, client, city, lights_out_time):
+    def __init__(self, bulbs, outlets, brightness, scheduler, client, city):
         ''' Constructor 
         '''
         self.scheduler = scheduler
         self.client = client
         self.city = city
-        self.lights_out_hour = lights_out_time.hour
-        self.lights_out_minute = lights_out_time.minute
+
+        # Set default lights on and off times
+        self.lights_out_hour = 23
+        self.lights_out_minute = 59
+        self.lights_out_hour = 18
+        self.lights_out_minute = 00
 
         # Store bulbs, outlets, and brightness settings
         self.bulbs = bulbs
@@ -52,10 +56,14 @@ class Lights:
         # Use a mutex for thread synchronization
         self.lock = Lock()
 
-        # Get the lights on-time for today
+        # Set lights on-time to dusk by default
+        self.on_time_mode = 'dusk'      # mode is either set to "dusk" or "fixed"
         lights_on_time = self.get_next_dusk_time()
         today = datetime.now().date()
         lights_on_time = lights_on_time.replace(year=today.year, month=today.month, day=today.day)
+
+        # Set lights out time to 11:59pm by default
+        self.off_time_mode = 'fixed'    # mode is either set to "dawn" or "fixed"
 
         # Initialize lights and schedule events
         self.bulb_state = False
@@ -95,10 +103,27 @@ class Lights:
             self.turn_off_outlets()       
 
         # set next lights on time
-        dusk_time = self.get_next_dusk_time()
-        logging.info(f'Next event = Lights ON at: {dusk_time.strftime("%m/%d/%Y, %H:%M:%S")} (dusk time)')
-        seconds = round((dusk_time - datetime.now()).total_seconds())
+        logging.info(f'Next event = Lights ON at: {self.get_next_lights_on_time().strftime("%m/%d/%Y, %H:%M:%S")}')
+        seconds = round((self.get_next_lights_on_time() - datetime.now()).total_seconds())
         self.scheduler.enter(seconds, 1, self.lights_on)
+
+    def set_lights_on_time(self, hour, minute):
+        ''' Set lights on time
+        '''
+        # Update new lights on time
+        self.lights_on_hour = hour
+        self.lights_on_minute = minute
+        logging.info(f'Lights ON time changed to: {self.lights_on_hour}:{self.lights_on_minute:02}')
+
+        # Search scheduler queue to remove current light event before inserting new one
+        for event in self.scheduler.queue:
+            if event.action == self.lights_off or event.action == self.lights_on:
+                self.scheduler.cancel(event)   # Purge old event from the queue
+        # If lights should now be on: turn them on (and add next event to the queue)
+        if datetime.now() < self.get_next_lights_out_time() < self.get_next_dusk_time():
+            self.lights_on()
+        else:   # Otherwise turn lights off (and add the next event to the queue)
+            self.lights_off()
 
     def set_lights_out_time(self, hour, minute):
         ''' Set lights out time
@@ -112,20 +137,36 @@ class Lights:
         for event in self.scheduler.queue:
             if event.action == self.lights_off or event.action == self.lights_on:
                 self.scheduler.cancel(event)   # Purge old event from the queue
-
         # If lights should now be on: turn them on (and add next event to the queue)
         if datetime.now() < self.get_next_lights_out_time() < self.get_next_dusk_time():
             self.lights_on()
         else:   # Otherwise turn lights off (and add the next event to the queue)
             self.lights_off()
 
+    def get_next_lights_on_time(self):
+        ''' Get next lights on time
+        '''
+        if self.on_time_mode == 'fixed':
+            lights_on_time = datetime.now().replace(hour=self.lights_on_hour, minute=self.lights_on_minute, second=0)
+            # If lights on time has already passed for today, return lights on time for tomorrow
+            if lights_on_time < datetime.now():
+                lights_on_time += timedelta(days=1)
+        else:
+            # if lights on time is not fixed, then set to next dusk time
+            lights_on_time = self.get_next_dusk_time()
+        return lights_on_time
+
     def get_next_lights_out_time(self):
         ''' Get next lights out time
         '''
-        lights_out_time = datetime.now().replace(hour=self.lights_out_hour, minute=self.lights_out_minute, second=0)
-        # If lights out time has already passed for today, return lights out time for tomorrow
-        if lights_out_time < datetime.now():
-            lights_out_time += timedelta(days=1)
+        if self.off_time_mode == 'fixed':
+            lights_out_time = datetime.now().replace(hour=self.lights_out_hour, minute=self.lights_out_minute, second=0)
+            # If lights out time has already passed for today, return lights out time for tomorrow
+            if lights_out_time < datetime.now():
+                lights_out_time += timedelta(days=1)
+        else:
+            # if lights out time is not fixed, then set to next dawn time
+            lights_out_time = self.get_next_dawn_time()
         return lights_out_time
 
     def get_next_dusk_time(self):
@@ -147,6 +188,26 @@ class Lights:
             dusk = s['dusk']
             dusk = dusk.replace(tzinfo=None)
         return dusk
+
+    def get_next_dawn_time(self):
+        ''' Determine next dawn time for local city
+        '''
+        try:
+            city = lookup(self.city, database())
+        except KeyError:         # Log error and return 5PM by default if city not found
+            logging.error(f'Unrecognized city {self.city}, using default dusk time of 5PM.')
+            return datetime.today().replace(hour=17, minute=0)
+        # Compute dusk time for today (corresponding to a solar depression angle of 6 degrees)
+        s = sun(city.observer, tzinfo=city.timezone)
+        dawn = s['dawn']
+        dawn = dawn.replace(tzinfo=None)  # remove timezone to be compatible with datetime
+
+        # If dusk time has already passed for today, return next dusk time for tomorrow
+        if dawn < datetime.now():
+            s = sun(city.observer, tzinfo=city.timezone, date=date.today()+timedelta(days=1))
+            dusk = s['dawn']
+            dusk = dusk.replace(tzinfo=None)
+        return dawn
 
     def turn_on_bulbs(self):
         ''' Method to turn on all bulbs

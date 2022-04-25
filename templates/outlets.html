@@ -28,6 +28,8 @@ This section provides control and setting for one or more smart outlets.
     <button name="outlet_state" type="submit" value="off">Outlets OFF</button>
 </form>
 
+<h2>Timer Settings for Outlets</h2>
+
 <b>Enable Timer Control of Outlet(s)</b>
 <br>The outlets may also be controlled by the timer.
 <br>This can be helpful to control indoor lights while away on vacation.
@@ -43,22 +45,20 @@ This section provides control and setting for one or more smart outlets.
     <button name="outlet_timer" type="submit" value="off">DISABLE</button>
 </form>
 
-<h2>Timer Setting</h2>
-The lights will be automatically turned on and off each day.
-The daily on-time is set to the dusk time and the off-time can be adjusted below.
-<br>The current settings are as follows:
-<br>Timer ON time: {{on_time}}
-<br>Timer OFF time: {{off_time}}
 <p>
-<form method="POST" method="post">
-    Select a new timer off-time:
-    <br><input type="time" name="off_time">
-    <input type="submit" value="Set new time">
-    {% if timer_msg != '': %}
-    <b>{{timer_msg}}</b>
-    {% endif %}
-</form>
-</p>
+The current timer settings are as follows:
+<br>Timer ON time: {{on_time}}
+{% if on_time_mode == "dusk" %}
+(dusk)
+{% elif on_time_mode == "fixed" %}
+(fixed time each day)
+{% endif %}
+<br>Timer OFF time: {{off_time}}
+{% if off_time_mode == "dawn" %}
+(dawn)
+{% elif off_time_mode == "fixed" %}
+(fixed time each day)
+{% endif %}
 
 </body>
 </html>
