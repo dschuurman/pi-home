@@ -14,7 +14,7 @@
 
 <h2>Smart Bulbs</h2>
 This section provides control and setting for one or more smart light bulbs.
-<br>The Zigbee "friendly names" of the configued light bulbs are: {{ lights }}
+<br>The Zigbee "friendly names" of the configued light bulbs are: {{ bulbs }}
 
 <p>Current state of smart bulbs: 
 {% if bulb_state %}
@@ -41,7 +41,7 @@ The lights can be automatically turned on and off each day.
 The daily on-time and off-time can be adjusted below.
 
 <p>Currently the timer control of the bulbs is: 
-{% if bulb_timer %}
+{% if timer %}
 <b>ON</b>
 {% else %}
 <b>OFF</b>

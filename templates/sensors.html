@@ -14,10 +14,7 @@
    <h2>Sensor status and data charts</h2>
 
    This section provides monitoring for one or more Zigbee sensors.
-   <br>The Zigbee "friendly names" of the configued sensors are: 
-   {% for sensor in sensor_list %} 
-    {{sensor}},
-   {% endfor %}
+   <br>The Zigbee "friendly names" of the configued sensors are: {{ sensors }}
 
    <p>Last readings at: {{day_data[-1][0]}}
    <table>
@@ -40,7 +37,7 @@
       // Data for last day
       var dayTemperature = {
       x: [  {% for row in day_data %}
-            '{{row[0]}}',{% endfor %}   
+            '{{row[0]}}',{% endfor %}
          ],
       y: [  {% for row in day_data %}
          {{row[1]}},{% endfor %}

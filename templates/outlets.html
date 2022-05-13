@@ -17,7 +17,7 @@ This section provides control and setting for one or more smart outlets.
 <br>The Zigbee "friendly names" of the configued outlets are: {{ outlets }} 
 
 <p>Current state of outlets: 
-{% if outlet_state %}
+{% if state %}
 <b>ON</b>
 {% else %}
 <b>OFF</b>
@@ -29,24 +29,22 @@ This section provides control and setting for one or more smart outlets.
 </form>
 
 <h2>Timer Settings for Outlets</h2>
+The outlets can be automatically turned on and off each day.
+The daily on-time and off-time can be adjusted below.
 
-<b>Enable Timer Control of Outlet(s)</b>
-<br>The outlets may also be controlled by the timer.
-<br>This can be helpful to control indoor lights while away on vacation.
-<br>Currently the timer control of the outlet(s) is:
-{% if outlet_timer %}
+<p>Currently the timer control of the outlets is: 
+{% if timer %}
 <b>ON</b>
 {% else %}
 <b>OFF</b>
 {% endif %}
-<br>
+
 <form action="" method="post">
-    <button name="outlet_timer" type="submit" value="on">ENABLE</button>
-    <button name="outlet_timer" type="submit" value="off">DISABLE</button>
+    <button name="outlet_timer" type="submit" value="on">Enable Timer</button>
+    <button name="outlet_timer" type="submit" value="off">Disable Timer</button>
 </form>
 
-<p>
-The current timer settings are as follows:
+<br>The current settings are as follows:
 <br>Timer ON time: {{on_time}}
 {% if on_time_mode == "dusk" %}
 (dusk)
@@ -59,6 +57,46 @@ The current timer settings are as follows:
 {% elif off_time_mode == "fixed" %}
 (fixed time each day)
 {% endif %}
+<p>
+
+<form action="" method="post">
+        Select a new timer on-time:<br>
+
+        <input type="radio" id="dusk" name="on_time_mode" value="dusk"
+        {% if on_time_mode == "dusk" %}
+        checked
+        {% endif %}>
+        <label for="dawn">Turn on at dusk</label><br>
+        <input type="radio" id="preset_on_time" name="on_time_mode" value="fixed"
+        {% if on_time_mode == "fixed" %}
+        checked
+        {% endif %}>
+        <label for="preset_on_time">Turn on at fixed time</label>
+        <input type="time" id="on_time" name="on_time" value="{{on_time}}"> 
+        <br><input type="submit" value="Set on time">
+</form>
+
+<form action="" method="post">
+    Select a new timer off-time:<br>
+    <input type="radio" id="dawn" name="off_time_mode" value="dawn"
+    {% if off_time_mode == "dawn" %}
+    checked
+    {% endif %}>
+    <label for="dawn">Turn off at dawn</label><br>
+    <input type="radio" id="preset_off_time" name="off_time_mode" value="fixed"
+    {% if off_time_mode == "fixed" %}
+    checked
+    {% endif %}>
+    <label for="preset_off_time">Turn off at fixed time</label>
+    <input type="time" id="off_time" name="off_time" value="{{off_time}}">
+    <br><input type="submit" value="Set off time">
+</form>
+
+<p>
+{% if timer_msg != '': %}
+<b>{{timer_msg}}</b>
+{% endif %}   
+</p>
 
 </body>
 </html>

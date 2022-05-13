@@ -185,7 +185,6 @@ By subscribing the MQTT topic for a sensor you can receive updates from a sensor
 Consult the Zigbee2MQTT documentation for a [complete list of MQTT topics and
 messages](https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html).
 
-
 ## Setting up the Python control software
 Once Zigbee2MQTT is installed and devices are successfully paired we can setup the
 `home-sense` control program itself. This program communicates with Zigbee devices by 
@@ -241,7 +240,6 @@ One way to ensure this is to launch the program as a systemd service which is co
 for the network to come online 
 ([see the example of of using systemd with Zigbee2MQTT](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#optional-running-as-a-daemon-with-systemctl)).
 
-
 ## Security considerations
 This should be run on a secure local network since the web pages are open and unencrypted.
 The logfile is also accessible via the web interface.
@@ -249,3 +247,11 @@ The logfile is also accessible via the web interface.
 This program is intended to be run on a private home network and is provided "as is" without any 
 warranty, expressed or implied, about merchantability or fitness for a particular purpose. 
 *Your mileage may vary*.
+
+# Software Structure
+The program uses separate classes for each broad category of Zigbee devices: smart bulbs, smart outlets, and sensors. 
+These classes provide methods for controlling the state of these devices with a user interface provided by  
+web pages. The software also makes use of threads: a main thread runs the control software another
+thread runs the web service for viewing the current state of the system and adjusting the configuration.
+A timer can be used to control the smart bulbs and outlets and to schedule periodic sensor samples.
+Timer events are implemented using a scheduler which stores events in a priority queue.

@@ -22,7 +22,8 @@ from waitress import serve
 # Custom classes
 from sensors import Sensors, Events, Mail
 from flaskthread import FlaskThread
-from lights import Lights
+from bulbs import Bulbs
+from outlets import Outlets
 
 # CONSTANTS
 VERSION = 0.5
@@ -34,7 +35,6 @@ QOS = 0
 def sigint_handler(signum, frame):
     ''' SIGINT handler - exit gracefully
     '''
-    #signal.setitimer(signal.ITIMER_REAL, 0, 0)   # Disable interval timer
     logging.info(f'Program recevied SIGINT at: {datetime.now()}')
     logging.shutdown()
     sys.exit(0)
@@ -138,13 +138,16 @@ for sensor in SENSORS:
     client.subscribe(f'zigbee2mqtt/{sensor}', qos=QOS)
     logging.info(f'Subscribed to: {sensor}')
 
-# Create an object to control lights with smart bulbs and smart outlets
-lights = Lights(BULBS, OUTLETS, BRIGHTNESS, scheduler, client, CITY)
-lights.set_lights_out_time(lights_out_time.hour, lights_out_time.minute)
+# Create an object to control lights with smart bulbs
+bulbs = Bulbs(BULBS, BRIGHTNESS, scheduler, client, CITY)
+bulbs.set_off_time(lights_out_time.hour, lights_out_time.minute)
+
+# Create an object to control smart outlets
+outlets = Outlets(OUTLETS, scheduler, client, CITY)
 
 # Start a flask web server in a separate thread
 logging.info('Starting web interface...')
-server = FlaskThread(WEB_SERVER_PORT, lights, sensors, DATABASE, LOG_FILE, VERSION)
+server = FlaskThread(WEB_SERVER_PORT, bulbs, outlets, sensors, events, DATABASE, LOG_FILE, VERSION)
 server.start()
 
 # Loop forever waiting for events
@@ -152,6 +155,5 @@ try:
     client.loop_start()
     scheduler.run()
 except KeyboardInterrupt:
-    signal.setitimer(signal.ITIMER_REAL, 0, 0)   # Disable interval timer
     client.disconnect()
     logging.info('Terminating due to KeyboardInterrupt.')

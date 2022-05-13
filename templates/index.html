@@ -28,7 +28,7 @@
 
         <tr><td>Smart bulbs</td>
         <td>
-            {% if bulb_state %}
+            {% if bulbs_state %}
             <b>ON</b>
             {% else %}
             <b>OFF</b>
@@ -37,17 +37,30 @@
         <tr><td>Bulb brightness</td><td> {{brightness}} </td></tr>
         <tr><td>Smart outlets</td>
         <td>
-            {% if outlet_state %}
+            {% if outlets_state %}
             <b>ON</b>
             {% else %}
             <b>OFF</b>
             {% endif %}
         </td></tr>
-        <tr><td>Timer control of Bulbs</td><td> {{bulb_timer}} </td>
-        <tr><td>Timer control of Outlets</td><td> {{outlet_timer}} </td>
-        <tr><td>Timer ON time</td><td> {{on_time}} ({{on_time_mode}}) </td></tr>
-        <tr><td>Timer OFF time</td><td> {{off_time}} ({{off_time_mode}}) </td></tr>
+        <tr><td>Timer control of Bulbs</td><td> <b>{{bulbs_timer}}</b>
+            {% if bulbs_timer %}
+            <br>ON time: {{bulbs_on_time}} ({{bulbs_on_time_mode}})
+            <br>OFF time: {{bulbs_off_time}} ({{bulbs_off_time_mode}})
+            {% endif %}
+        </td></tr>
+        <tr><td>Timer control of Outlets</td><td> <b>{{outlets_timer}}</b>
+            {% if outlets_timer %}
+            <br>ON time: {{outlets_on_time}} ({{outlets_on_time_mode}})
+            <br>OFF time: {{outlets_off_time}} ({{outlets_off_time_mode}})
+            {% endif %}
+        </td></tr>
     </table>
 
+    <p>Queue of currently scheduled events:
+    <ul>
+    {% for event in schedule %}
+    <li>{{event}}{% endfor %}   
+    </ul>
 </body>
 </html>

@@ -110,6 +110,12 @@ class Sensors:
         else:
             return self.humidity < self.high_hunidity_threshold - HUMIDITY_HYSTERESIS
 
+    def __str__(self):
+        sensor_str = self.sensor_list[0]
+        for i in range(1,len(self.sensor_list)):
+            sensor_str += f', {self.sensor_list[i]}'
+        return sensor_str
+
 class Events:
     ''' Event class used to handle periodic sensor sampling and MQTT messages from sensors
     '''
@@ -193,7 +199,7 @@ class Events:
         '''
         message = str(msg.payload.decode("utf-8"))
         sensor = msg.topic.split('/')[1]   # Extract sensor "friendly name" from MQTT topic
-        logging.info(f'{datetime.now()} MQTT Message received: {message}')
+        logging.debug(f'{datetime.now()} MQTT Message received: {message}')
         status = json.loads(message) # Parse JSON message from sensor
 
         # analyze MQTT message for updates on various measurements
@@ -214,7 +220,7 @@ class Events:
             logging.info(f'Low battery detected for {sensor}!')
 
         if 'temperature' in message:
-            logging.info(f'Temperature = {status["temperature"]} degrees C')
+            logging.debug(f'Temperature = {status["temperature"]} degrees C')
             self.sensors.temperature = float(status['temperature'])
             # Next, check temperature value; send an alert if it falls below a preset threshold
             if self.sensors.is_low_temp() and LOW_TEMPERATURE_ALARM not in self.alarms:
@@ -242,7 +248,7 @@ class Events:
                 self.alarms.remove(FREEZING_ALARM)
         
         if 'humidity' in message:
-            logging.info(f'Humidity = {status["humidity"]}')
+            logging.debug(f'Humidity = {status["humidity"]}')
             self.sensors.humidity = float(status['humidity'])
             # check humidity value; send an alert if it rises above a preset threshold
             if self.sensors.is_high_humidity() and HUMIDITY_ALARM not in self.alarms:
@@ -258,7 +264,7 @@ class Events:
                 self.alarms.remove(HUMIDITY_ALARM)
 
         if 'pressure' in message:
-            logging.info(f'Air pressure = {status["pressure"]} hPa')
+            logging.debug(f'Air pressure = {status["pressure"]} hPa')
             self.sensors.pressure = float(status['pressure'])
 
 class Mail:
