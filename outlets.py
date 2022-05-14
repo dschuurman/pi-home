@@ -34,10 +34,10 @@ class Outlets:
         self.off_time_mode = 'fixed'    # mode is either set to "dawn" or "fixed"
 
         # Set fixed outlets on and off times
-        self.outlets_out_hour = 23
-        self.outlets_out_minute = 00
-        self.outlets_on_hour = 18
-        self.outlets_on_minute = 00
+        self.off_hour = 23
+        self.off_minute = 00
+        self.on_hour = 18
+        self.on_minute = 00
 
         # Initialize timer control of outlets to be disabled
         self.timer = False
@@ -77,9 +77,9 @@ class Outlets:
         ''' Set outlets on time
         '''
         # Update new outlets on time
-        self.outlets_on_hour = hour
-        self.outlets_on_minute = minute
-        logging.info(f'Outlets ON time set to: {self.outlets_on_hour}:{self.outlets_on_minute:02}')
+        self.on_hour = hour
+        self.on_minute = minute
+        logging.info(f'Outlets ON time set to: {self.on_hour}:{self.on_minute:02}')
 
         # Search scheduler queue to remove current light event before inserting new one
         for event in self.scheduler.queue:
@@ -95,9 +95,9 @@ class Outlets:
         ''' Set outlets off time
         '''
         # Update new outlets out time
-        self.outlets_out_hour = hour
-        self.outlets_out_minute = minute
-        logging.info(f'Outlets out time set to: {self.outlets_out_hour}:{self.outlets_out_minute:02}')
+        self.off_hour = hour
+        self.off_minute = minute
+        logging.info(f'Outlets out time set to: {self.off_hour}:{self.off_minute:02}')
 
         # Search scheduler queue to remove current light event before inserting new one
         for event in self.scheduler.queue:
@@ -113,7 +113,7 @@ class Outlets:
         ''' Get next outlets on time
         '''
         if self.on_time_mode == 'fixed':
-            outlets_on_time = datetime.now().replace(hour=self.outlets_on_hour, minute=self.outlets_on_minute, second=0)
+            outlets_on_time = datetime.now().replace(hour=self.on_hour, minute=self.on_minute, second=0)
             # If outlets on time has already passed for today, return outlets on time for tomorrow
             if outlets_on_time < datetime.now():
                 outlets_on_time += timedelta(days=1)
@@ -126,14 +126,14 @@ class Outlets:
         ''' Get next outlets out time
         '''
         if self.off_time_mode == 'fixed':
-            outlets_out_time = datetime.now().replace(hour=self.outlets_out_hour, minute=self.outlets_out_minute, second=0)
+            outlets_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)
             # If outlets out time has already passed for today, return outlets out time for tomorrow
-            if outlets_out_time < datetime.now():
-                outlets_out_time += timedelta(days=1)
+            if outlets_off_time < datetime.now():
+                outlets_off_time += timedelta(days=1)
         else:
             # if outlets out time is not fixed, then set to next dawn time
-            outlets_out_time = self.get_next_dawn_time()
-        return outlets_out_time
+            outlets_off_time = self.get_next_dawn_time()
+        return outlets_off_time
 
     def get_next_dusk_time(self):
         ''' Determine next dusk time for local city

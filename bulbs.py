@@ -32,8 +32,8 @@ class Bulbs:
         logging.info(f'Devices: {bulbs_list}')
 
         # Set default bulbs on and off times
-        self.out_hour = 23
-        self.out_minute = 59
+        self.off_hour = 23
+        self.off_minute = 59
         self.on_hour = 18
         self.on_minute = 00
 
@@ -105,9 +105,9 @@ class Bulbs:
         ''' Set bulbs out time
         '''
         # Update new bulbs out time
-        self.out_hour = hour
-        self.out_minute = minute
-        logging.info(f'Bulbs out time changed to: {self.out_hour}:{self.out_minute:02}')
+        self.off_hour = hour
+        self.off_minute = minute
+        logging.info(f'Bulbs out time changed to: {self.off_hour}:{self.off_minute:02}')
 
         # Search scheduler queue to remove current light event before inserting new one
         for event in self.scheduler.queue:
@@ -136,14 +136,14 @@ class Bulbs:
         ''' Get next bulbs out time
         '''
         if self.off_time_mode == 'fixed':
-            bulbs_out_time = datetime.now().replace(hour=self.out_hour, minute=self.out_minute, second=0)
+            bulbs_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)
             # If bulbs out time has already passed for today, return bulbs out time for tomorrow
-            if bulbs_out_time < datetime.now():
-                bulbs_out_time += timedelta(days=1)
+            if bulbs_off_time < datetime.now():
+                bulbs_off_time += timedelta(days=1)
         else:
             # if bulbs out time is not fixed, then set to next dawn time
-            bulbs_out_time = self.get_next_dawn_time()
-        return bulbs_out_time
+            bulbs_off_time = self.get_next_dawn_time()
+        return bulbs_off_time
 
     def get_next_dusk_time(self):
         ''' Determine next dusk time for local city

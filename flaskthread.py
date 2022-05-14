@@ -167,6 +167,8 @@ class FlaskThread(Thread):
             elif form_dict.get('outlet_timer', None) == 'on':
                 # Enable timer control of outlet
                 self.outlets.timer = True
+                self.outlets.set_on_time(self.outlets.on_hour,self.outlets.on_minute)
+                self.outlets.set_off_time(self.outlets.off_hour,self.outlets.off_minute)
                 logging.info(f'Timer control of outlet ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
             elif form_dict.get('outlet_timer', None) == 'off':
                 # Disable timer control of outlet
@@ -189,7 +191,7 @@ class FlaskThread(Thread):
                         self.outlets.set_on_time(int(t[0]),int(t[1]))
                         # Update bulbs on and off times
                         timer_msg = 'Outlets time update successful!'
-                        logging.info('Outlets set to turn on at a fixed time')
+                        logging.info(f'Outlets set to turn on at a fixed time at {time}')
                 # Update on time displayed on web page
                 on_time=self.outlets.get_next_on_time().strftime("%H:%M")
 
@@ -209,7 +211,7 @@ class FlaskThread(Thread):
                         self.outlets.set_off_time(int(t[0]),int(t[1]))
                         # Update outlets on and off times
                         timer_msg = 'Outlets time update successful!'
-                        logging.info('Outlets off updated to a fixed time')
+                        logging.info(f'Outlets off updated to a fixed time at {time}')
                 # update off time displayed on web page
                 off_time=self.outlets.get_next_off_time().strftime("%H:%M")
 
