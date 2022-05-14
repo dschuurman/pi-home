@@ -101,6 +101,7 @@ class FlaskThread(Thread):
                 if form_dict.get('on_time_mode') == 'dusk':
                     self.bulbs.on_time_mode = 'dusk'
                     logging.info('Bulbs set to come on at dusk')
+                    timer_msg = 'Time update successful!'
                 else:
                     self.bulbs.on_time_mode = 'fixed'
                     time = request.form['on_time']
@@ -120,6 +121,7 @@ class FlaskThread(Thread):
                 if form_dict.get('off_time_mode') == 'dawn':
                     self.bulbs.off_time_mode = 'dawn'
                     logging.info('Bulbs set to turn off at dawn')
+                    timer_msg = 'Time update successful!'
                 else:
                     self.bulbs.off_time_mode = 'fixed'
                     time = request.form['off_time']
@@ -175,6 +177,7 @@ class FlaskThread(Thread):
                 if form_dict.get('on_time_mode') == 'dusk':
                     self.outlets.on_time_mode = 'dusk'
                     logging.info('Outlets set to come on at dusk')
+                    timer_msg = 'Outlets time update successful!'
                 else:
                     self.outlets.on_time_mode = 'fixed'
                     time = request.form['on_time']
@@ -185,7 +188,7 @@ class FlaskThread(Thread):
                         t = time.split(':')
                         self.outlets.set_on_time(int(t[0]),int(t[1]))
                         # Update bulbs on and off times
-                        timer_msg = 'Outlet time update successful!'
+                        timer_msg = 'Outlets time update successful!'
                         logging.info('Outlets set to turn on at a fixed time')
                 # Update on time displayed on web page
                 on_time=self.outlets.get_next_on_time().strftime("%H:%M")
@@ -194,6 +197,7 @@ class FlaskThread(Thread):
                 if form_dict.get('off_time_mode') == 'dawn':
                     self.outlets.off_time_mode = 'dawn'
                     logging.info('Outlets set to turn off at dawn')
+                    timer_msg = 'Outlets time update successful!'
                 else:
                     self.outlets.off_time_mode = 'fixed'
                     time = request.form['off_time']

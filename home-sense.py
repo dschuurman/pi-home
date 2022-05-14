@@ -62,7 +62,7 @@ if OUTLETS != []:
     for i in range(len(OUTLETS)):
         OUTLETS[i] = OUTLETS[i].strip()
 BRIGHTNESS = conf.getint('home-sense', 'brightness',fallback=254)
-OFF_TIME = conf.get('home-sense', 'off_time',fallback='23:00')
+BULBS_OFF_TIME = conf.get('home-sense', 'bulbs_off_time',fallback='23:59')
 DATABASE = conf.get('home-sense', 'database', fallback='/home/pi/sensor_data.db')
 WEB_SERVER_PORT = conf.getint('home-sense', 'web_server_port', fallback=8080)
 WEB_INTERFACE = conf.getboolean('home-sense', 'web_interface',fallback=False)
@@ -100,11 +100,11 @@ try:
 except KeyError:
     logging.error(f'Unrecognized city in configuration file: {CITY}')
 # Check off-time setting
-if not ((':' in OFF_TIME) and (4 <= len(OFF_TIME) <= 5) and (0 <= int(OFF_TIME.split(':')[0]) < 24) and (0 <= int(OFF_TIME.split(':')[1])<60)):
-    logging.error(f'Invalid off_time in conf file {OFF_TIME} - using default off-time 23:00')
-    OFF_TIME = "23:00"
+if not ((':' in BULBS_OFF_TIME) and (4 <= len(BULBS_OFF_TIME) <= 5) and (0 <= int(BULBS_OFF_TIME.split(':')[0]) < 24) and (0 <= int(BULBS_OFF_TIME.split(':')[1])<60)):
+    logging.error(f'Invalid off_time in conf file {BULBS_OFF_TIME} - using default off-time 23:59')
+    BULBS_OFF_TIME = "23:59"
 # Set default lights off-time for today
-lights_out_time = datetime.now().replace(hour=int(OFF_TIME.split(':')[0]), minute=int(OFF_TIME.split(':')[1]))
+lights_out_time = datetime.now().replace(hour=int(BULBS_OFF_TIME.split(':')[0]), minute=int(BULBS_OFF_TIME.split(':')[1]))
 logging.info(f'Default lights OFF time set to: {lights_out_time.strftime("%H:%M")}')
 
 # setup a sigint handler to exit gracefully on signal

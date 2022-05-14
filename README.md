@@ -19,8 +19,19 @@ Furthermore, e-mail alerts can be triggered when sensor values cross certain pre
 (as defined in the configuration file) or a water leak or low battery is detected.
 Note that all data and configuration settings are stored locally on the Raspberry Pi.
 
-# Installation
+# Software Structure
+The program parses a configuration file at start-up to set initial settings.
+Separate classes are used for each category of supported Zigbee devices, including smart bulbs, 
+smart outlets, and sensors. These classes provide methods for controlling and reading the state of these devices.
+The software also makes use of two threads: a main thread runs the control software and another
+thread runs a flask web service for viewing the current state of the system and adjusting the configuration.
+A timer is used take periodic sensor samples and to schedule on and off times for the smart bulbs and outlets.
+Timer events are implemented using a scheduler which stores events in a priority queue. Sensor samples are stored
+in a local SQLite database and plots of historical values are available in a webpage which uses a javascript plotting library.
+When sensor readings (such as temperature) exceed pre-defined thresholds or when alarms are detected 
+(eg. low battery and water sensor alarms) an e-mail message can be forwarded to an SMTP server.
 
+# Installation
 This project was developed on a Raspberry Pi running 
 [Raspberry Pi OS Lite](https://www.raspberrypi.org/software/operating-systems/)
 and written in Python version 3. The code relies heavily on 
@@ -247,11 +258,3 @@ The logfile is also accessible via the web interface.
 This program is intended to be run on a private home network and is provided "as is" without any 
 warranty, expressed or implied, about merchantability or fitness for a particular purpose. 
 *Your mileage may vary*.
-
-# Software Structure
-The program uses separate classes for each broad category of Zigbee devices: smart bulbs, smart outlets, and sensors. 
-These classes provide methods for controlling the state of these devices with a user interface provided by  
-web pages. The software also makes use of threads: a main thread runs the control software another
-thread runs the web service for viewing the current state of the system and adjusting the configuration.
-A timer can be used to control the smart bulbs and outlets and to schedule periodic sensor samples.
-Timer events are implemented using a scheduler which stores events in a priority queue.

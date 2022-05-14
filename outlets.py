@@ -22,6 +22,9 @@ class Outlets:
     def __init__(self, outlets_list, scheduler, client, city):
         ''' Constructor 
         '''
+        self.outlets_list = outlets_list
+        logging.info(f'Outlets: {outlets_list}')
+
         self.scheduler = scheduler
         self.client = client
         self.city = city
@@ -36,11 +39,7 @@ class Outlets:
         self.outlets_on_hour = 18
         self.outlets_on_minute = 00
 
-        # Store outlets
-        self.outlets_list = outlets_list
-        logging.info(f'Outlets: {outlets_list}')
-
-        # Initialize timer control of outlets to be disabled (normally used for vacation)
+        # Initialize timer control of outlets to be disabled
         self.timer = False
 
         # Use a mutex for thread synchronization
@@ -48,13 +47,11 @@ class Outlets:
 
         # Initialize outlets state
         self.state = False
-
-        self.outlets_off()
+        self.turn_off_outlets()
 
     def outlets_on(self):
         ''' turn outlets on and schedule next event to turn outlets off
         '''
-
         if self.timer:
             logging.info(f'*** Turning outlets ON at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")} ***')
             self.turn_on_outlets()
@@ -67,8 +64,6 @@ class Outlets:
     def outlets_off(self):
         ''' turn outlets off and schedule next event to turn outlets on
         '''
- 
-         # If outlets are enabled then turn them off as well
         if self.timer:
             logging.info(f'*** Turning outlets OFF at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")} ***')
             self.turn_off_outlets()       
@@ -84,7 +79,7 @@ class Outlets:
         # Update new outlets on time
         self.outlets_on_hour = hour
         self.outlets_on_minute = minute
-        logging.info(f'Outlets ON time changed to: {self.outlets_on_hour}:{self.outlets_on_minute:02}')
+        logging.info(f'Outlets ON time set to: {self.outlets_on_hour}:{self.outlets_on_minute:02}')
 
         # Search scheduler queue to remove current light event before inserting new one
         for event in self.scheduler.queue:
@@ -102,7 +97,7 @@ class Outlets:
         # Update new outlets out time
         self.outlets_out_hour = hour
         self.outlets_out_minute = minute
-        logging.info(f'Outlets out time changed to: {self.outlets_out_hour}:{self.outlets_out_minute:02}')
+        logging.info(f'Outlets out time set to: {self.outlets_out_hour}:{self.outlets_out_minute:02}')
 
         # Search scheduler queue to remove current light event before inserting new one
         for event in self.scheduler.queue:

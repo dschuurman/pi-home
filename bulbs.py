@@ -22,9 +22,14 @@ class Bulbs:
     def __init__(self, bulbs_list, brightness, scheduler, client, city):
         ''' Constructor 
         '''
+        # Store bulbs and brightness settings
+        self.bulbs_list = bulbs_list
         self.scheduler = scheduler
         self.client = client
         self.city = city
+
+        self.set_brightness(brightness)
+        logging.info(f'Devices: {bulbs_list}')
 
         # Set default bulbs on and off times
         self.out_hour = 23
@@ -32,25 +37,19 @@ class Bulbs:
         self.on_hour = 18
         self.on_minute = 00
 
-        # Store bulbs and brightness settings
-        self.bulbs_list = bulbs_list
-        self.set_brightness(brightness)
-        logging.info(f'Devices: {bulbs_list}')
-
         # Initialize timer control of bulbs to be enabled (normally used for porch bulbs)
         self.timer = True
 
         # Use a mutex for thread synchronization
         self.lock = Lock()
 
-        # Set bulbs on-time to dusk by default
-        self.on_time_mode = 'dusk'      # mode is either set to "dusk" or "fixed"
+        # Initialize bulbs to come on at dusk and turn off at a fixed time
+        # modes are set to either "dusk" or "fixed"
+        self.on_time_mode = 'dusk'
+        self.off_time_mode = 'fixed'
         on_time = self.get_next_dusk_time()
         today = datetime.now().date()
-        on_time = on_time.replace(year=today.year, month=today.month, day=today.day)
-
-        # Set bulbs out time to 11:59pm by default
-        self.off_time_mode = 'fixed'    # mode is either set to "dawn" or "fixed"
+        on_time = on_time.replace(year=today.year, month=today.month, day=today.day)   
 
         # Initialize bulbs and schedule events
         self.state = False
