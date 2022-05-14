@@ -1,14 +1,14 @@
 table, td {border: 1px solid black;}
 td {padding: 10px; vertical-align: top;}
 
-.header {
+.menu {
     background-color: lightgrey;
     padding: 20px 10px;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: auto;
   }
   
-.header a {
+.menu a {
     color: black;
     text-align: center;
     padding: 12px;
@@ -18,12 +18,12 @@ td {padding: 10px; vertical-align: top;}
     border-radius: 4px;
   }
   
-.header a:hover {
+.menu a:hover {
     background-color: lightsteelblue;
     color: black;
   }
   
-.header a.active {
+.menu a.active {
     background-color: royalblue;
     color: white;
   }
