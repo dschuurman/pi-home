@@ -26,7 +26,7 @@ from bulbs import Bulbs
 from outlets import Outlets
 
 # CONSTANTS
-VERSION = 0.5
+VERSION = 0.6
 CONFIG_FILENAME = 'home-sense.conf'
 TABLE = 'SensorData'
 MQTT_KEEPALIVE = 60

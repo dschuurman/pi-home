@@ -88,15 +88,12 @@ class FlaskThread(Thread):
                 logging.info(f'Bulb(s) turned off via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
             elif form_dict.get('bulb_timer', None) == 'on':
                 # Enable timer control of bulbs
-                self.bulbs.bulb_timer = True
-                logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+                self.bulbs.enable_timer()
             elif form_dict.get('bulb_timer', None) == 'off':
                 # Disable timer control of bulbs
-                self.bulbs.bulb_timer = False
-                logging.info(f'Timer control of bulbs DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+                self.bulbs.disable_timer()
             elif form_dict.get('brightness', None) != None:
                 self.bulbs.set_brightness(int(form_dict.get('brightness')))
-
             elif form_dict.get('on_time_mode', None) != None:
                 if form_dict.get('on_time_mode') == 'dusk':
                     self.bulbs.on_time_mode = 'dusk'
@@ -165,16 +162,11 @@ class FlaskThread(Thread):
                 self.outlets.turn_off_outlets()
                 logging.info(f'Outlet(s) turned off via web interface at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
             elif form_dict.get('outlet_timer', None) == 'on':
-                # Enable timer control of outlet
-                self.outlets.timer = True
-                self.outlets.set_on_time(self.outlets.on_hour,self.outlets.on_minute)
-                self.outlets.set_off_time(self.outlets.off_hour,self.outlets.off_minute)
-                logging.info(f'Timer control of outlet ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+                # Enable timer control of outlets
+                self.outlets.enable_timer()
             elif form_dict.get('outlet_timer', None) == 'off':
-                # Disable timer control of outlet
-                self.outlets.timer = False
-                logging.info(f'Timer control of outlet DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-
+                # Disable timer control of outlets
+                self.outlets.disable_timer()
             elif form_dict.get('on_time_mode', None) != None:
                 if form_dict.get('on_time_mode') == 'dusk':
                     self.outlets.on_time_mode = 'dusk'

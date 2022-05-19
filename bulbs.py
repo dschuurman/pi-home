@@ -29,7 +29,7 @@ class Bulbs:
         self.city = city
 
         self.set_brightness(brightness)
-        logging.info(f'Devices: {bulbs_list}')
+        logging.info(f'Devices: {bulbs_list}')        
 
         # Set default bulbs on and off times
         self.off_hour = 23
@@ -37,29 +37,18 @@ class Bulbs:
         self.on_hour = 18
         self.on_minute = 00
 
-        # Initialize timer control of bulbs to be enabled (normally used for porch bulbs)
-        self.timer = True
-
         # Use a mutex for thread synchronization
         self.lock = Lock()
 
         # Initialize bulbs to come on at dusk and turn off at a fixed time
-        # modes are set to either "dusk" or "fixed"
+        # modes may be set to either "dusk" or "fixed"
         self.on_time_mode = 'dusk'
         self.off_time_mode = 'fixed'
-        on_time = self.get_next_dusk_time()
-        today = datetime.now().date()
-        on_time = on_time.replace(year=today.year, month=today.month, day=today.day)   
 
-        # Initialize bulbs and schedule events
+        # Initialize bulbs state and timer control
         self.state = False
-
-        # If current time is between bulbs ON and OFF then set bulbs ON and schedule event for OFF time
-        if on_time <= datetime.now() < self.get_next_off_time():
-            self.bulbs_on()
-        # Otherwise turn bulbs OFF and schedule event to turn bulbs ON at next dusk time
-        else:
-            self.bulbs_off()
+        self.timer = True
+        self.enable_timer()
 
     def bulbs_on(self):
         ''' turn bulbs on and schedule next event to turn bulbs off
@@ -119,6 +108,29 @@ class Bulbs:
         else:   # Otherwise turn bulbs off (and add the next event to the queue)
             self.bulbs_off()
 
+    def disable_timer(self):
+        ''' Disable timer for bulbs and clear any timer events in the scheduler
+        '''
+        self.timer = False
+        self.lock.acquire()
+        for event in self.scheduler.queue:
+            if event.action == self.bulbs_off or event.action == self.bulbs_on:
+                self.scheduler.cancel(event)   # Purge event from the queue
+        self.lock.release()
+        logging.info(f'Timer control of bulbs DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+
+    def enable_timer(self):
+        ''' Enable timer for bulbs and schedule next timer event
+        '''
+        self.timer = True
+        logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+
+        # Deduce current bulb state and schedule next timer event based on next on and next off times
+        if self.get_next_on_time() < self.get_next_off_time():
+            self.bulbs_off()
+        else:
+            self.bulbs_on()
+
     def get_next_on_time(self):
         ''' Get next bulbs on time
         '''
@@ -133,7 +145,7 @@ class Bulbs:
         return bulbs_on_time
 
     def get_next_off_time(self):
-        ''' Get next bulbs out time
+        ''' Get next bulbs off time
         '''
         if self.off_time_mode == 'fixed':
             bulbs_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)

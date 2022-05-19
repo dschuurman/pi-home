@@ -23,14 +23,14 @@ class Outlets:
         ''' Constructor 
         '''
         self.outlets_list = outlets_list
-        logging.info(f'Outlets: {outlets_list}')
-
         self.scheduler = scheduler
         self.client = client
         self.city = city
 
+        logging.info(f'Outlets: {outlets_list}')
+
         # Set outlets times to fixed time by default
-        self.on_time_mode = 'fixed'    # mode is either set to "dusk" or "fixed"
+        self.on_time_mode = 'dusk'    # mode is either set to "dusk" or "fixed"
         self.off_time_mode = 'fixed'    # mode is either set to "dawn" or "fixed"
 
         # Set fixed outlets on and off times
@@ -39,15 +39,15 @@ class Outlets:
         self.on_hour = 18
         self.on_minute = 00
 
-        # Initialize timer control of outlets to be disabled
-        self.timer = False
-
         # Use a mutex for thread synchronization
         self.lock = Lock()
 
-        # Initialize outlets state
+        # Initialize timer control of outlets to be disabled at start-up
+        self.timer = False
         self.state = False
-        self.turn_off_outlets()
+
+        # Initialize outlets state
+        self.disable_timer()
 
     def outlets_on(self):
         ''' turn outlets on and schedule next event to turn outlets off
@@ -66,7 +66,7 @@ class Outlets:
         '''
         if self.timer:
             logging.info(f'*** Turning outlets OFF at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")} ***')
-            self.turn_off_outlets()       
+            self.turn_off_outlets()
 
         # set next outlets on time
         logging.info(f'Next event = outlets ON at: {self.get_next_on_time().strftime("%m/%d/%Y, %H:%M:%S")}')
@@ -108,6 +108,29 @@ class Outlets:
             self.outlets_on()
         else:   # Otherwise turn outlets off (and add the next event to the queue)
             self.outlets_off()
+
+    def disable_timer(self):
+        ''' Disable timer for outlets and clear any timer events in the scheduler
+        '''
+        self.timer = False
+        self.lock.acquire()
+        for event in self.scheduler.queue:
+            if event.action == self.outlets_off or event.action == self.outlets_on:
+                self.scheduler.cancel(event)   # Purge event from the queue
+        self.lock.release()
+        logging.info(f'Timer control of outlets DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+
+    def enable_timer(self):
+        ''' Enable timer for outlets and schedule next timer event
+        '''
+        self.timer = True
+        logging.info(f'Timer control of outlets ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+
+        # Deduce current outlets state and schedule next timer event based on next on and next off times
+        if self.get_next_on_time() < self.get_next_off_time():
+            self.outlets_off()
+        else:
+            self.outlets_on()
 
     def get_next_on_time(self):
         ''' Get next outlets on time
