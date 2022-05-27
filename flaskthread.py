@@ -38,7 +38,7 @@ class FlaskThread(Thread):
         self.app.add_url_rule('/', 'index', self.index)
         self.app.add_url_rule('/bulbs', 'bulbs', self.bulbs_page, methods=['GET', 'POST'])
         self.app.add_url_rule('/outlets', 'outlets', self.outlets_page, methods=['GET', 'POST'])
-        self.app.add_url_rule('/sensors', 'sensors', self.sensors_page)
+        self.app.add_url_rule('/sensors', 'sensors', self.sensors_page, methods=['GET', 'POST'])
         self.app.add_url_rule('/log', 'log', self.log)
         self.app.add_url_rule('/about', 'about', self.about)
 
@@ -235,7 +235,17 @@ class FlaskThread(Thread):
         year_data = self.cursor.execute(f"SELECT datetime,temperature,humidity,pressure FROM {TABLE} where datetime > datetime('now','localtime','-365 day') AND ROWID % {skip} = 0").fetchall()
 
         self.db.close()
-        return render_template('sensors.html', sensors=str(self.sensors), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, day_data=day_data, month_data=month_data, year_data=year_data)
+
+        email = f'{self.events.mail.to_address} sent via {self.events.mail.server}'
+
+        if request.method == 'POST':
+            form_dict = request.form
+            if form_dict.get('test_email', None) == 'test':
+                self.events.mail.send('home-sense test email','This is a test email sent from your home-sense server.')
+                logging.info(f'Test email sent {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
+            return render_template('sensors.html', sensors=str(self.sensors), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, day_data=day_data, month_data=month_data, year_data=year_data, email=email), 200
+        elif request.method == 'GET':
+            return render_template('sensors.html', sensors=str(self.sensors), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, day_data=day_data, month_data=month_data, year_data=year_data, email=email)
 
     def log(self):
         ''' Returns webpage /log

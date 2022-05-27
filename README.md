@@ -251,6 +251,15 @@ One way to ensure this is to launch the program as a systemd service which is co
 for the network to come online 
 ([see the example of of using systemd with Zigbee2MQTT](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#optional-running-as-a-daemon-with-systemctl)).
 
+Once the program is running you can access the web front end by pointing your browser to:
+```
+http://a.b.c.d.:8080
+```
+where `a.b.c.d` is the IP address of the Raspberry Pi and `8080` is the web server port configured
+in the `home-send.conf` file (set to 8080 by default). The web service provides friendly web pages
+for viewing the status, sensor history, and adjusting the settings for the home-sense program.
+
+
 ## Security considerations
 This should be run on a secure local network since the web pages are open and unencrypted.
 The logfile is also accessible via the web interface.
