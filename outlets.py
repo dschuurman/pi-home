@@ -113,6 +113,7 @@ class Outlets:
         ''' Disable timer for outlets and clear any timer events in the scheduler
         '''
         self.timer = False
+        # Remove existing outlet entries in the scheduler queue
         self.lock.acquire()
         for event in self.scheduler.queue:
             if event.action == self.outlets_off or event.action == self.outlets_on:
@@ -124,13 +125,18 @@ class Outlets:
         ''' Enable timer for outlets and schedule next timer event
         '''
         self.timer = True
-        logging.info(f'Timer control of outlets ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-
-        # Deduce current outlets state and schedule next timer event based on next on and next off times
+        # Remove existing outlet entries in the scheduler queue
+        self.lock.acquire()
+        for event in self.scheduler.queue:
+            if event.action == self.outlets_off or event.action == self.outlets_on:
+                self.scheduler.cancel(event)   # Purge event from the queue
+        self.lock.release()
+        # Deduce current outlets state and schedule next timer event
         if self.get_next_on_time() < self.get_next_off_time():
             self.outlets_off()
         else:
             self.outlets_on()
+        logging.info(f'Timer control of outlets ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def get_next_on_time(self):
         ''' Get next outlets on time

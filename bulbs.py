@@ -112,6 +112,7 @@ class Bulbs:
         ''' Disable timer for bulbs and clear any timer events in the scheduler
         '''
         self.timer = False
+        # Remove existing bulb entries in the scheduler queue
         self.lock.acquire()
         for event in self.scheduler.queue:
             if event.action == self.bulbs_off or event.action == self.bulbs_on:
@@ -123,13 +124,18 @@ class Bulbs:
         ''' Enable timer for bulbs and schedule next timer event
         '''
         self.timer = True
-        logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-
-        # Deduce current bulb state and schedule next timer event based on next on and next off times
+        # Remove existing bulb entries in the scheduler queue
+        self.lock.acquire()
+        for event in self.scheduler.queue:
+            if event.action == self.bulbs_off or event.action == self.bulbs_on:
+                self.scheduler.cancel(event)   # Purge event from the queue
+        self.lock.release()        
+        # Deduce current bulb state and schedule next timer event
         if self.get_next_on_time() < self.get_next_off_time():
             self.bulbs_off()
         else:
             self.bulbs_on()
+        logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def get_next_on_time(self):
         ''' Get next bulbs on time
