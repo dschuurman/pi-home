@@ -1,7 +1,7 @@
-# home-sense
+# Pi-Home
 
-Home-sense is a home automation program using smart bulbs, smart outlets,
-and a variety of sensors connected using the [Zigbee](https://en.wikipedia.org/wiki/Zigbee) wireless protocol.
+Pi-Home is a home automation program using a Raspberry Pi connected to smart bulbs, smart outlets,
+and a variety of sensors connected over a [Zigbee](https://en.wikipedia.org/wiki/Zigbee) wireless network.
 This code was written for a Raspberry Pi using a Zigbee USB stick, but it could be run on other 
 platforms using a compatible Zigbee adapter. This modest program currently supports a variety of Zigbee 
 networked sensors to sense temperature, humidity, air pressure, and water leaks.
@@ -164,7 +164,7 @@ it is recommended that you assign a more meaningful "friendly name" using the we
 For example, a bulb could be named "bulb1" or "porch light".
 This allows devices to be controlled and referenced using a *name* rather than
 relying on a cumbersome IEEE address. Keep a list of the "friendly names" since
-these will later need to be included in the home-sense configuration file.
+these will later need to be included in the pi-home configuration file.
 
 ### Binding Zigbee Devices
 One helpful feature of Zigbee networks is the ability to *bind* devices. This feature allows
@@ -173,7 +173,7 @@ devices to directly control each other. For example, a switch (such as this
 can bind to an outlet or bulb so that it can be controlled directly by the switch. 
 This can be configured in the Zigbee2MQTT web frontend using the `bind` tab shown
 in the device view. For example, to control a device like a bulb or an outlet with a switch, 
-bind the switch to the corresponding device. Home-sense can control lights and outlets
+bind the switch to the corresponding device. Pi-Home can control lights and outlets
 at preset times, but binding a switch enables the device to be manually controlled as well.
 
 ## Notes on Controlling Zigbee devices over MQTT
@@ -198,11 +198,11 @@ messages](https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html).
 
 ## Setting up the Python control software
 Once Zigbee2MQTT is installed and devices are successfully paired we can setup the
-`home-sense` control program itself. This program communicates with Zigbee devices by 
+`pi-home` control program itself. This program communicates with Zigbee devices by 
 sending messages to the MQTT broker which are then bridged to the Zigbee network via Zigbee2MQTT.
 The control program is written in Python version 3 and uses the 
 [paho-mqtt](https://www.eclipse.org/paho/index.php?page=clients/python/index.php) library to send
-MQTT messages. The dependencies for `home-sense` can all be installed from the command-line as follows:
+MQTT messages. The dependencies for `pi-home` can all be installed from the command-line as follows:
 ```
 $ pip3 install configparser paho-mqtt sqlite3 smtplib astral flask waitress
 ```
@@ -216,10 +216,10 @@ webpage to display sensor values. Flask’s built-in development WSGI server is
 so this project uses the [waitress](https://github.com/Pylons/waitress) server instead.
 The web server runs on port 8080 by default (hence the Zigbee2MQTT web front end is 
 configured to run on port 8081 to avoid a port conflict).
-The home-sense webpage includes javascript code that uses the [plotly](https://plotly.com/) 
+The pi-home sensor webpage includes javascript code that uses the [plotly](https://plotly.com/) 
 library to plot a chart of sensor values collected over the last day, month, and year which
 are stored in a SQLite database file.
-The home-sense `templates` folder should be installed with the Python program since it is 
+The pi-home `templates` folder should be installed with the Python program since it is 
 required for the web interface. 
 
 Finally, this project requires access to an SMTP server to send e-mail alerts.
@@ -230,7 +230,7 @@ authenticated communucations which are required by many SMTP servers.
 Note that some ISPs may require that you adjust your mail settings to allow for external email clients.
 
 ## Configuration
-Home-sense includes a `home-sense.conf` configuration file which should be adjusted to reflect 
+Pi-Home includes a `pi-home.conf` configuration file which should be adjusted to reflect 
 your local settings. In particular, you will need to specify the "friendly names" of any Zigbee
 sensors, lights, and outlets you are using along with the IP Address of the MQTT broker for 
 reaching the Zigbee network (ideally the broker will be run on the local host).
@@ -238,15 +238,15 @@ Furthermore, you should set your city so that the dusk time can be properly comp
 The configuration file includes email settings as well as the thresholds at which e-mail 
 alerts should be triggered. 
 It also includes settings for the MQTT and Web ports as well as the name and location of 
-a log file. By default, a log file named `home-sense.log` will be written in the same 
+a log file. By default, a log file named `pi-home.log` will be written in the same 
 folder where the program resides.
 
 ## Launching the program
 The program can be launched from the command-line in the installation folder as follows:
 ```
-python3 home-sense.py
+python3 pi-home.py
 ```
-If the `home-sense` program is launched at boot time, it should be started only *after* the network is up and running.
+If the `pi-home` program is launched at boot time, it should be started only *after* the network is up and running.
 One way to ensure this is to launch the program as a systemd service which is configured to wait
 for the network to come online 
 ([see the example of of using systemd with Zigbee2MQTT](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#optional-running-as-a-daemon-with-systemctl)).
@@ -257,7 +257,7 @@ http://a.b.c.d.:8080
 ```
 where `a.b.c.d` is the IP address of the Raspberry Pi and `8080` is the web server port configured
 in the `home-send.conf` file (set to 8080 by default). The web service provides friendly web pages
-for viewing the status, sensor history, and adjusting the settings for the home-sense program.
+for viewing the status, sensor history, and adjusting the settings for the pi-home program.
 
 
 ## Security considerations

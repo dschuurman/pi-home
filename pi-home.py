@@ -1,4 +1,4 @@
-# Home-sense program for use with Zigbee home lights and sensors and a Raspberry Pi
+# Pi-home program for monitoring Zigbee home lights and sensors using a Raspberry Pi
 # (C) 2020,2021,2022 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,
@@ -26,8 +26,8 @@ from bulbs import Bulbs
 from outlets import Outlets
 
 # CONSTANTS
-VERSION = 0.6
-CONFIG_FILENAME = 'home-sense.conf'
+VERSION = 0.61
+CONFIG_FILENAME = 'pi-home.conf'
 TABLE = 'SensorData'
 MQTT_KEEPALIVE = 60
 QOS = 0
@@ -44,37 +44,37 @@ conf = configparser.ConfigParser()
 conf.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), CONFIG_FILENAME))
 
 # Configuration settings with fallback values
-BROKER_IP = conf.get('home-sense', 'broker_ip', fallback="127.0.0.1")
-BROKER_PORT = conf.getint('home-sense', 'broker_port', fallback=1883)
-SENSORS = conf.get('home-sense', 'sensors', fallback=[])
+BROKER_IP = conf.get('pi-home', 'broker_ip', fallback="127.0.0.1")
+BROKER_PORT = conf.getint('pi-home', 'broker_port', fallback=1883)
+SENSORS = conf.get('pi-home', 'sensors', fallback=[])
 if SENSORS != []:
     SENSORS = SENSORS.split(',')
     for i in range(len(SENSORS)):
         SENSORS[i] = SENSORS[i].strip()
-BULBS = conf.get('home-sense', 'bulbs', fallback=[])
+BULBS = conf.get('pi-home', 'bulbs', fallback=[])
 if BULBS != []:
     BULBS = BULBS.split(',')
     for i in range(len(BULBS)):
         BULBS[i] = BULBS[i].strip()
-OUTLETS = conf.get('home-sense', 'outlets', fallback=[])
+OUTLETS = conf.get('pi-home', 'outlets', fallback=[])
 if OUTLETS != []:
     OUTLETS = OUTLETS.split(',')
     for i in range(len(OUTLETS)):
         OUTLETS[i] = OUTLETS[i].strip()
-BRIGHTNESS = conf.getint('home-sense', 'brightness',fallback=254)
-BULBS_OFF_TIME = conf.get('home-sense', 'bulbs_off_time',fallback='23:59')
-DATABASE = conf.get('home-sense', 'database', fallback='/home/pi/sensor_data.db')
-WEB_SERVER_PORT = conf.getint('home-sense', 'web_server_port', fallback=8080)
-WEB_INTERFACE = conf.getboolean('home-sense', 'web_interface',fallback=False)
-CITY = conf.get('home-sense', 'city',fallback='Detroit')
-LOG_FILE = conf.get('home-sense', 'logfile', fallback='/tmp/home-sense.log')
-LOW_TEMP_THRESHOLD = conf.getfloat('home-sense', 'low_temp_threshold', fallback=10.0)
-HIGH_HUMIDITY_THRESHOLD = conf.getfloat('home-sense', 'high_humidity_threshold', fallback=85.0)
-SAMPLE_PERIOD = conf.getint('home-sense', 'sample_period', fallback=300)
-SENDER_EMAIL = conf.get('home-sense', 'sender_email', fallback='')
-RECIPIENT_EMAIL = conf.get('home-sense', 'recipient_email', fallback='')
-SMTP_SERVER = conf.get('home-sense', 'smtp_server', fallback='')
-LOG_LEVEL = conf.get('home-sense', 'loglevel', fallback='info')
+BRIGHTNESS = conf.getint('pi-home', 'brightness',fallback=254)
+BULBS_OFF_TIME = conf.get('pi-home', 'bulbs_off_time',fallback='23:59')
+DATABASE = conf.get('pi-home', 'database', fallback='/home/pi/sensor_data.db')
+WEB_SERVER_PORT = conf.getint('pi-home', 'web_server_port', fallback=8080)
+WEB_INTERFACE = conf.getboolean('pi-home', 'web_interface',fallback=False)
+CITY = conf.get('pi-home', 'city',fallback='Detroit')
+LOG_FILE = conf.get('pi-home', 'logfile', fallback='/tmp/pi-home.log')
+LOW_TEMP_THRESHOLD = conf.getfloat('pi-home', 'low_temp_threshold', fallback=10.0)
+HIGH_HUMIDITY_THRESHOLD = conf.getfloat('pi-home', 'high_humidity_threshold', fallback=85.0)
+SAMPLE_PERIOD = conf.getint('pi-home', 'sample_period', fallback=300)
+SENDER_EMAIL = conf.get('pi-home', 'sender_email', fallback='')
+RECIPIENT_EMAIL = conf.get('pi-home', 'recipient_email', fallback='')
+SMTP_SERVER = conf.get('pi-home', 'smtp_server', fallback='')
+LOG_LEVEL = conf.get('pi-home', 'loglevel', fallback='info')
 
 # Start logging and set logging level; default to INFO level
 if LOG_LEVEL == 'error':

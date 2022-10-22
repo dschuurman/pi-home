@@ -1,4 +1,4 @@
-# Home-sense program for use with Zigbee devices and a Raspberry Pi with email alerts
+# Part of the Pi-Home program for use with Zigbee devices and a Raspberry Pi with email alerts
 # (C) 2020 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,

@@ -1,4 +1,4 @@
-# Home-sense program for use with Zigbee devices and a Raspberry Pi
+# Part of the Pi-Home program for use with Zigbee devices and a Raspberry Pi
 # (C) 2020 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,
@@ -241,7 +241,7 @@ class FlaskThread(Thread):
         if request.method == 'POST':
             form_dict = request.form
             if form_dict.get('test_email', None) == 'test':
-                self.events.mail.send('home-sense test email','This is a test email sent from your home-sense server.')
+                self.events.mail.send('Pi-Home test email','This is a test email sent from your pi-home server.')
                 logging.info(f'Test email sent {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
             return render_template('sensors.html', sensors=str(self.sensors), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, day_data=day_data, month_data=month_data, year_data=year_data, email=email), 200
         elif request.method == 'GET':

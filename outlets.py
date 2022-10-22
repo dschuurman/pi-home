@@ -1,4 +1,4 @@
-# Home Automation script for Zigbee lights, sockets, and sensors to run on Raspberry Pi
+# Part of the Pi-Home automation script for Zigbee lights, sockets, and sensors to run on a Raspberry Pi
 # (C) 2020 Derek Schuurman
 # License: GNU General Public License (GPL) v3
 # This program is distributed in the hope that it will be useful,
