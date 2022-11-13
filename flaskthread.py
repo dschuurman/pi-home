@@ -60,7 +60,7 @@ class FlaskThread(Thread):
         # Create a list of scheduled timer events to display
         schedule = []
         for event in self.events.scheduler.queue:
-            schedule.append(f'time={datetime.fromtimestamp(event.time).strftime("%H:%M")}, action={event.action.__name__}')
+            schedule.append(f'time={datetime.fromtimestamp(event.time).strftime("%H:%M")}, action={event.action.__name__} ({(datetime.fromtimestamp(event.time)-datetime.now()).total_seconds()/60:.1f} minutes from now)')
 
         # pass the output state to index.html to display current state on webpage
         return render_template('index.html', device_list=device_list, temperature=self.sensors.get_temperature(), humidity=self.sensors.get_humidity(), pressure=self.sensors.get_pressure(), bulbs_state=self.bulbs.state, bulbs_on_time_mode=self.bulbs.on_time_mode, bulbs_on_time=bulbs_on_time, bulbs_off_time_mode=self.bulbs.off_time_mode, bulbs_off_time=bulbs_off_time, bulbs_timer=self.bulbs.timer, outlets_state=self.outlets.state, outlets_on_time_mode=self.outlets.on_time_mode, outlets_on_time=outlets_on_time, outlets_off_time_mode=self.outlets.off_time_mode, outlets_off_time=outlets_off_time, outlets_timer=self.outlets.timer, brightness=str(self.bulbs.brightness), water_leak=self.sensors.water_leak, low_battery=self.sensors.low_battery, schedule=schedule)
@@ -111,6 +111,7 @@ class FlaskThread(Thread):
                         # Update bulbs on and off times
                         timer_msg = 'Time update successful!'
                         logging.info('Bulbs set to turn on at a fixed time')
+                self.bulbs.update_scheduler_queue()
                 # Update on time displayed on web page
                 on_time=self.bulbs.get_next_on_time().strftime("%H:%M")
 
@@ -131,6 +132,7 @@ class FlaskThread(Thread):
                         # Update bulbs on and off times
                         timer_msg = 'Time update successful!'
                         logging.info('Bulbs off updated to a fixed time')
+                self.bulbs.update_scheduler_queue()
                 # update off time displayed on web page
                 off_time=self.bulbs.get_next_off_time().strftime("%H:%M")
 
@@ -184,6 +186,7 @@ class FlaskThread(Thread):
                         # Update bulbs on and off times
                         timer_msg = 'Outlets time update successful!'
                         logging.info(f'Outlets set to turn on at a fixed time at {time}')
+                self.outlets.update_scheduler_queue()
                 # Update on time displayed on web page
                 on_time=self.outlets.get_next_on_time().strftime("%H:%M")
 
@@ -204,6 +207,7 @@ class FlaskThread(Thread):
                         # Update outlets on and off times
                         timer_msg = 'Outlets time update successful!'
                         logging.info(f'Outlets off updated to a fixed time at {time}')
+                self.outlets.update_scheduler_queue()
                 # update off time displayed on web page
                 off_time=self.outlets.get_next_off_time().strftime("%H:%M")
 

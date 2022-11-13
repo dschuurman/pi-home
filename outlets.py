@@ -109,33 +109,32 @@ class Outlets:
         else:   # Otherwise turn outlets off (and add the next event to the queue)
             self.outlets_off()
 
-    def disable_timer(self):
-        ''' Disable timer for outlets and clear any timer events in the scheduler
-        '''
-        self.timer = False
-        # Remove existing outlet entries in the scheduler queue
+    def update_scheduler_queue(self):
+        # Remove existing bulb entries in the scheduler queue
         self.lock.acquire()
         for event in self.scheduler.queue:
             if event.action == self.outlets_off or event.action == self.outlets_on:
                 self.scheduler.cancel(event)   # Purge event from the queue
         self.lock.release()
+        if self.timer:    # If timer is enabled, place updated outlet events in the scheduler
+            if self.get_next_on_time() < self.get_next_off_time():
+                self.outlets_off()
+            else:
+                self.outlets_on()
+        logging.info(f'Scheduler event queue updated')
+
+    def disable_timer(self):
+        ''' Disable timer for outlets and clear any timer events in the scheduler
+        '''
+        self.timer = False
+        self.update_scheduler_queue()
         logging.info(f'Timer control of outlets DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def enable_timer(self):
         ''' Enable timer for outlets and schedule next timer event
         '''
         self.timer = True
-        # Remove existing outlet entries in the scheduler queue
-        self.lock.acquire()
-        for event in self.scheduler.queue:
-            if event.action == self.outlets_off or event.action == self.outlets_on:
-                self.scheduler.cancel(event)   # Purge event from the queue
-        self.lock.release()
-        # Deduce current outlets state and schedule next timer event
-        if self.get_next_on_time() < self.get_next_off_time():
-            self.outlets_off()
-        else:
-            self.outlets_on()
+        self.update_scheduler_queue()
         logging.info(f'Timer control of outlets ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def get_next_on_time(self):
@@ -197,11 +196,11 @@ class Outlets:
         dawn = s['dawn']
         dawn = dawn.replace(tzinfo=None)  # remove timezone to be compatible with datetime
 
-        # If dusk time has already passed for today, return next dusk time for tomorrow
+        # If dawn time has already passed for today, return next dawn time for tomorrow
         if dawn < datetime.now():
             s = sun(city.observer, tzinfo=city.timezone, date=date.today()+timedelta(days=1))
-            dusk = s['dawn']
-            dusk = dusk.replace(tzinfo=None)
+            dawn = s['dawn']
+            dawn = dawn.replace(tzinfo=None)
         return dawn
 
     def turn_on_outlets(self):

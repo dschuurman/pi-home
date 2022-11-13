@@ -108,16 +108,26 @@ class Bulbs:
         else:   # Otherwise turn bulbs off (and add the next event to the queue)
             self.bulbs_off()
 
-    def disable_timer(self):
-        ''' Disable timer for bulbs and clear any timer events in the scheduler
-        '''
-        self.timer = False
+    def update_scheduler_queue(self):
         # Remove existing bulb entries in the scheduler queue
         self.lock.acquire()
         for event in self.scheduler.queue:
             if event.action == self.bulbs_off or event.action == self.bulbs_on:
                 self.scheduler.cancel(event)   # Purge event from the queue
         self.lock.release()
+        if self.timer:    # If timer is enabled, place updated bulb events in the scheduler
+            if self.get_next_on_time() < self.get_next_off_time():
+                self.bulbs_off()
+            else:
+                self.bulbs_on()
+        logging.info(f'Scheduler event queue updated')
+
+    def disable_timer(self):
+        ''' Disable timer for bulbs and clear any timer events in the scheduler
+        '''
+        self.timer = False
+        # Remove existing bulb entries in the scheduler queue
+        self.update_scheduler_queue()
         logging.info(f'Timer control of bulbs DISABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def enable_timer(self):
@@ -125,16 +135,7 @@ class Bulbs:
         '''
         self.timer = True
         # Remove existing bulb entries in the scheduler queue
-        self.lock.acquire()
-        for event in self.scheduler.queue:
-            if event.action == self.bulbs_off or event.action == self.bulbs_on:
-                self.scheduler.cancel(event)   # Purge event from the queue
-        self.lock.release()        
-        # Deduce current bulb state and schedule next timer event
-        if self.get_next_on_time() < self.get_next_off_time():
-            self.bulbs_off()
-        else:
-            self.bulbs_on()
+        self.update_scheduler_queue()
         logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def get_next_on_time(self):
@@ -191,16 +192,16 @@ class Bulbs:
         except KeyError:         # Log error and return 5PM by default if city not found
             logging.error(f'Unrecognized city {self.city}, using default dusk time of 5PM.')
             return datetime.today().replace(hour=17, minute=0)
-        # Compute dusk time for today (corresponding to a solar depression angle of 6 degrees)
+        # Compute dawn time for today (corresponding to a solar depression angle of 6 degrees)
         s = sun(city.observer, tzinfo=city.timezone)
         dawn = s['dawn']
         dawn = dawn.replace(tzinfo=None)  # remove timezone to be compatible with datetime
 
-        # If dusk time has already passed for today, return next dusk time for tomorrow
+        # If dawn time has already passed for today, return next dusk time for tomorrow
         if dawn < datetime.now():
             s = sun(city.observer, tzinfo=city.timezone, date=date.today()+timedelta(days=1))
-            dusk = s['dawn']
-            dusk = dusk.replace(tzinfo=None)
+            dawn = s['dawn']
+            dawn = dawn.replace(tzinfo=None)
         return dawn
 
     def turn_on_bulbs(self):
