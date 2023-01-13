@@ -242,16 +242,38 @@ a log file. By default, a log file named `pi-home.log` will be written in the sa
 folder where the program resides.
 
 ## Launching the program
-The program can be launched from the command-line in the installation folder as follows:
+The program can be launched from the command-line from the installation folder as follows:
 ```
 python3 pi-home.py
 ```
-If the `pi-home` program is launched at boot time, it should be started only *after* the network is up and running.
-One way to ensure this is to launch the program as a systemd service which is configured to wait
-for the network to come online 
-([see the example of of using systemd with Zigbee2MQTT](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#optional-running-as-a-daemon-with-systemctl)).
-
-Once the program is running you can access the web front end by pointing your browser to:
+The `pi-home` program may also be automatically launched at boot time as a systemd service.
+This service must be configured to wait for the network to come online before starting.
+This can be configured by creating a systemd service file in `/etc/systemd/system/pi-home.service` 
+with the following settings:
+```
+[Unit]
+Description=pi-home
+After=network-online.target
+[Service]
+ExecStart=/bin/sh -c "/usr/bin/python3 pi-home.py"
+WorkingDirectory=/home/pi/pi-home
+Restart=always
+User=pi
+[Install]
+WantedBy=multi-user.target
+```
+Note that the `User` and `WorkingDirectory` will need to be set to reflect
+your default username and the directory where the pi-home source files are installed.
+Finally, enable the pi-home service as follows:
+```
+sudo systemctl enable pi-home.service
+```
+Reboot the computer and ensure that the service is started as expected. To check the status
+of the service, type:
+```
+sudo systemctl status pi-home.service
+```
+Once the program is running, you should be able to access the web interface by pointing your browser to:
 ```
 http://a.b.c.d.:8080
 ```
