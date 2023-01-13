@@ -14,7 +14,7 @@ from astral.geocoder import lookup, database
 from threading import Thread, Lock
 import sched, time
 
-#### Class definitions ####
+#### Bulb class definitions ####
 
 class Bulbs:
     ''' Bulbs class used to schedule and control smart bulbs
@@ -31,19 +31,19 @@ class Bulbs:
         self.set_brightness(brightness)
         logging.info(f'Devices: {bulbs_list}')        
 
-        # Set default bulbs on and off times
+        # Use a mutex for thread synchronization
+        self.lock = Lock()
+
+        # Initialize bulbs on and off times
         self.off_hour = 23
         self.off_minute = 59
         self.on_hour = 18
         self.on_minute = 00
 
-        # Use a mutex for thread synchronization
-        self.lock = Lock()
-
-        # Initialize bulbs to come on at dusk and turn off at a fixed time
-        # modes may be set to either "dusk" or "fixed"
+        # Initialize bulbs to come on at dusk and turn off at dawn
+        # These modes may be set to either "dusk", "dawn", or "fixed"
         self.on_time_mode = 'dusk'
-        self.off_time_mode = 'fixed'
+        self.off_time_mode = 'dawn'
 
         # Initialize bulbs state and timer control
         self.state = False
@@ -139,33 +139,43 @@ class Bulbs:
         logging.info(f'Timer control of bulbs ENABLED at {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}')
 
     def get_next_on_time(self):
-        ''' Get next bulbs on time
+        ''' Get next bulbs on-time based on current mode
         '''
         if self.on_time_mode == 'fixed':
             bulbs_on_time = datetime.now().replace(hour=self.on_hour, minute=self.on_minute, second=0)
-            # If bulbs on time has already passed for today, return bulbs on time for tomorrow
+            # If bulbs on-time has already passed for today, return on-time for tomorrow
             if bulbs_on_time < datetime.now():
                 bulbs_on_time += timedelta(days=1)
-        else:
-            # if bulbs on time is not fixed, then set to next dusk time
+        elif self.on_time_mode == 'dusk':
+            # set bulb on time to next dusk time
             bulbs_on_time = self.get_next_dusk_time()
+        elif self.on_time_mode == 'dawn':
+            # turning bulbs on at dawn is unusal, but included for completeness
+            bulbs_on_time = self.get_next_dawn_time()
+        else:
+            logging.debug(f'unrecognized bulb on-time mode: {self.on_time_mode}')
         return bulbs_on_time
 
     def get_next_off_time(self):
-        ''' Get next bulbs off time
+        ''' Get next bulbs off-time based on current mode
         '''
         if self.off_time_mode == 'fixed':
             bulbs_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)
-            # If bulbs out time has already passed for today, return bulbs out time for tomorrow
+            # If bulbs off-time has already passed for today, return off-time for tomorrow
             if bulbs_off_time < datetime.now():
                 bulbs_off_time += timedelta(days=1)
-        else:
-            # if bulbs out time is not fixed, then set to next dawn time
+        elif self.off_time_mode == 'dawn':
+            # set bulb to next dawn time
             bulbs_off_time = self.get_next_dawn_time()
+        elif self.off_time_mode == 'dusk':
+            # turning bulbs off at dusk is unusal, but included for completeness
+            bulbs_off_time = self.get_next_dusk_time()
+        else:
+            logging.debug(f'unrecognized bulb off-time mode: {self.off_time_mode}')
         return bulbs_off_time
 
     def get_next_dusk_time(self):
-        ''' Determine next dusk time for local city
+        ''' Determine next dusk time for based on city
         '''
         try:
             city = lookup(self.city, database())
@@ -185,7 +195,7 @@ class Bulbs:
         return dusk
 
     def get_next_dawn_time(self):
-        ''' Determine next dawn time for local city
+        ''' Determine next dawn time based on city
         '''
         try:
             city = lookup(self.city, database())
@@ -205,7 +215,7 @@ class Bulbs:
         return dawn
 
     def turn_on_bulbs(self):
-        ''' Method to turn on all bulbs
+        ''' Method to turn on all the bulbs
         '''
         self.lock.acquire()
         for bulb in self.bulbs_list:

@@ -31,7 +31,7 @@ HUMIDITY_ALARM = 3
 TEMPERATURE_HYSTERESIS = 1.0
 HUMIDITY_HYSTERESIS = 2.0
 
-# Class definitions related to sensors
+# Sensor class definitions
 
 class Sensors:
     ''' class to manage device state for lights and outlets and sensors
