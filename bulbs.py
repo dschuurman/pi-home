@@ -14,6 +14,11 @@ from astral.geocoder import lookup, database
 from threading import Thread, Lock
 import sched, time
 
+# Constants
+FIXED = 0
+DUSK = 1
+DAWN = 2
+
 #### Bulb class definitions ####
 
 class Bulbs:
@@ -41,9 +46,9 @@ class Bulbs:
         self.on_minute = 00
 
         # Initialize bulbs to come on at dusk and turn off at dawn
-        # These modes may be set to either "dusk", "dawn", or "fixed"
-        self.on_time_mode = 'dusk'
-        self.off_time_mode = 'dawn'
+        # These modes may be set to either DUSK, DAWN, or FIXED
+        self.on_time_mode = DUSK
+        self.off_time_mode = DAWN
 
         # Initialize bulbs state and timer control
         self.state = False
@@ -141,15 +146,15 @@ class Bulbs:
     def get_next_on_time(self):
         ''' Get next bulbs on-time based on current mode
         '''
-        if self.on_time_mode == 'fixed':
+        if self.on_time_mode == FIXED:
             bulbs_on_time = datetime.now().replace(hour=self.on_hour, minute=self.on_minute, second=0)
             # If bulbs on-time has already passed for today, return on-time for tomorrow
             if bulbs_on_time < datetime.now():
                 bulbs_on_time += timedelta(days=1)
-        elif self.on_time_mode == 'dusk':
+        elif self.on_time_mode == DUSK:
             # set bulb on time to next dusk time
             bulbs_on_time = self.get_next_dusk_time()
-        elif self.on_time_mode == 'dawn':
+        elif self.on_time_mode == DAWN:
             # turning bulbs on at dawn is unusal, but included for completeness
             bulbs_on_time = self.get_next_dawn_time()
         else:
@@ -159,15 +164,15 @@ class Bulbs:
     def get_next_off_time(self):
         ''' Get next bulbs off-time based on current mode
         '''
-        if self.off_time_mode == 'fixed':
+        if self.off_time_mode == FIXED:
             bulbs_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)
             # If bulbs off-time has already passed for today, return off-time for tomorrow
             if bulbs_off_time < datetime.now():
                 bulbs_off_time += timedelta(days=1)
-        elif self.off_time_mode == 'dawn':
+        elif self.off_time_mode == DAWN:
             # set bulb to next dawn time
             bulbs_off_time = self.get_next_dawn_time()
-        elif self.off_time_mode == 'dusk':
+        elif self.off_time_mode == DUSK:
             # turning bulbs off at dusk is unusal, but included for completeness
             bulbs_off_time = self.get_next_dusk_time()
         else:

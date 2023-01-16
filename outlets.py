@@ -14,6 +14,11 @@ from astral.geocoder import lookup, database
 from threading import Thread, Lock
 import sched, time
 
+# Constants
+FIXED = 0
+DUSK = 1
+DAWN = 2
+
 #### Class definition ####
 
 class Outlets:
@@ -30,8 +35,8 @@ class Outlets:
         logging.info(f'Outlets: {outlets_list}')
 
         # Set outlets times to fixed time by default
-        self.on_time_mode = 'dusk'    # mode is either set to "dusk" or "fixed"
-        self.off_time_mode = 'fixed'    # mode is either set to "dawn" or "fixed"
+        self.on_time_mode = DUSK      # on mode defaults to DUSK
+        self.off_time_mode = FIXED    # off mode defaults to FIXED
 
         # Set fixed outlets on and off times
         self.off_hour = 23
@@ -140,27 +145,37 @@ class Outlets:
     def get_next_on_time(self):
         ''' Get next outlets on time
         '''
-        if self.on_time_mode == 'fixed':
+        if self.on_time_mode == FIXED:
             outlets_on_time = datetime.now().replace(hour=self.on_hour, minute=self.on_minute, second=0)
             # If outlets on time has already passed for today, return outlets on time for tomorrow
             if outlets_on_time < datetime.now():
                 outlets_on_time += timedelta(days=1)
-        else:
+        elif self.on_time_mode == DUSK:
             # if outlets on time is not fixed, then set to next dusk time
             outlets_on_time = self.get_next_dusk_time()
+        elif self.on_time_mode == DAWN:
+            # turning outlets on at dawn is unusal, but included for completeness
+            bulbs_on_time = self.get_next_dawn_time()
+        else:
+            logging.debug(f'unrecognized outlet on-time mode: {self.on_time_mode}')
         return outlets_on_time
 
     def get_next_off_time(self):
         ''' Get next outlets out time
         '''
-        if self.off_time_mode == 'fixed':
+        if self.off_time_mode == FIXED:
             outlets_off_time = datetime.now().replace(hour=self.off_hour, minute=self.off_minute, second=0)
             # If outlets out time has already passed for today, return outlets out time for tomorrow
             if outlets_off_time < datetime.now():
                 outlets_off_time += timedelta(days=1)
-        else:
+        elif self.off_time_mode == DAWN:
             # if outlets out time is not fixed, then set to next dawn time
             outlets_off_time = self.get_next_dawn_time()
+        elif self.off_time_mode == DUSK:
+            # turning outlets off at dusk is unusal, but included for completeness
+            outlets_off_time = self.get_next_dusk_time()
+        else:
+            logging.debug(f'unrecognized outlet off-time mode: {self.off_time_mode}')
         return outlets_off_time
 
     def get_next_dusk_time(self):

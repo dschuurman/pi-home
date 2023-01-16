@@ -9,6 +9,11 @@
     </style>
 </head>
 
+{# Constants for on and off modes #}
+{% set FIXED = 0 %}
+{% set DUSK = 1 %}
+{% set DAWN = 2 %}
+
 <body onload="document.getElementById('outlets').className='active';">
 {% include 'header.html' %}
 
@@ -46,15 +51,15 @@ The daily on-time and off-time can be adjusted below.
 
 <br>The current settings are as follows:
 <br>Timer ON time: {{on_time}}
-{% if on_time_mode == "dusk" %}
+{% if on_time_mode == DUSK %}
 (dusk)
-{% elif on_time_mode == "fixed" %}
+{% elif on_time_mode == FIXED %}
 (fixed time each day)
 {% endif %}
 <br>Timer OFF time: {{off_time}}
-{% if off_time_mode == "dawn" %}
+{% if off_time_mode == DAWN %}
 (dawn)
-{% elif off_time_mode == "fixed" %}
+{% elif off_time_mode == FIXED %}
 (fixed time each day)
 {% endif %}
 <p>

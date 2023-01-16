@@ -9,6 +9,11 @@
     </style>
 </head>
 
+{# Constants for on and off modes #}
+{% set FIXED = 0 %}
+{% set DUSK = 1 %}
+{% set DAWN = 2 %}
+
 <body onload="document.getElementById('home').className='active';">
     {% include 'header.html' %}
 
@@ -46,14 +51,40 @@
         </td></tr>
         <tr><td>Timer control of Bulbs</td><td> <b>{{bulbs_timer}}</b>
             {% if bulbs_timer %}
-            <br>ON time: {{bulbs_on_time}} ({{bulbs_on_time_mode}})
-            <br>OFF time: {{bulbs_off_time}} ({{bulbs_off_time_mode}})
+
+            <br>ON time: {{bulbs_on_time}}
+            {% if bulbs_on_time_mode == DUSK %}
+            (dusk)
+            {% elif bulbs_on_time_mode == FIXED %}
+            (fixed time each day)
+            {% endif %}
+
+            <br>OFF time: {{bulbs_off_time}}
+            {% if bulbs_off_time_mode == DAWN %}
+            (dawn)
+            {% elif bulbs_off_time_mode == FIXED %}
+            (fixed time each day)
+            {% endif %}
+
             {% endif %}
         </td></tr>
         <tr><td>Timer control of Outlets</td><td> <b>{{outlets_timer}}</b>
             {% if outlets_timer %}
-            <br>ON time: {{outlets_on_time}} ({{outlets_on_time_mode}})
-            <br>OFF time: {{outlets_off_time}} ({{outlets_off_time_mode}})
+
+            <br>ON time: {{outlets_on_time}}
+            {% if outlets_on_time_mode == DUSK %}
+            (dusk)
+            {% elif outlets_on_time_mode == FIXED %}
+            (fixed time each day)
+            {% endif %}
+
+            <br>OFF time: {{outlets_off_time}}
+            {% if outlets_off_time_mode == DAWN %}
+            (dawn)
+            {% elif outlets_off_time_mode == FIXED %}
+            (fixed time each day)
+            {% endif %}
+
             {% endif %}
         </td></tr>
     </table>

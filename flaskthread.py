@@ -15,6 +15,9 @@ import math
 import logging
 
 # Constants
+FIXED = 0
+DUSK = 1
+DAWN = 2
 TABLE = 'SensorData'
 NUMBER_OF_PLOT_POINTS = 1000
 
@@ -96,11 +99,11 @@ class FlaskThread(Thread):
                 self.bulbs.set_brightness(int(form_dict.get('brightness')))
             elif form_dict.get('on_time_mode', None) != None:
                 if form_dict.get('on_time_mode') == 'dusk':
-                    self.bulbs.on_time_mode = 'dusk'
+                    self.bulbs.on_time_mode = DUSK
                     logging.info('Bulbs set to come on at dusk')
                     timer_msg = 'Time update successful!'
                 else:
-                    self.bulbs.on_time_mode = 'fixed'
+                    self.bulbs.on_time_mode = FIXED
                     time = request.form['on_time']
                     if time == '':
                         logging.error('Invalid bulbs off time requested.')
@@ -117,11 +120,11 @@ class FlaskThread(Thread):
 
             elif form_dict.get('off_time_mode', None) != None:
                 if form_dict.get('off_time_mode') == 'dawn':
-                    self.bulbs.off_time_mode = 'dawn'
+                    self.bulbs.off_time_mode = DAWN
                     logging.info('Bulbs set to turn off at dawn')
                     timer_msg = 'Time update successful!'
                 else:
-                    self.bulbs.off_time_mode = 'fixed'
+                    self.bulbs.off_time_mode = FIXED
                     time = request.form['off_time']
                     if time == '':
                         logging.error('Invalid bulbs off time requested.')
@@ -171,11 +174,11 @@ class FlaskThread(Thread):
                 self.outlets.disable_timer()
             elif form_dict.get('on_time_mode', None) != None:
                 if form_dict.get('on_time_mode') == 'dusk':
-                    self.outlets.on_time_mode = 'dusk'
+                    self.outlets.on_time_mode = DUSK
                     logging.info('Outlets set to come on at dusk')
                     timer_msg = 'Outlets time update successful!'
                 else:
-                    self.outlets.on_time_mode = 'fixed'
+                    self.outlets.on_time_mode = FIXED
                     time = request.form['on_time']
                     if time == '':
                         logging.error('Invalid outlets off time requested.')
@@ -192,11 +195,11 @@ class FlaskThread(Thread):
 
             elif form_dict.get('off_time_mode', None) != None:
                 if form_dict.get('off_time_mode') == 'dawn':
-                    self.outlets.off_time_mode = 'dawn'
+                    self.outlets.off_time_mode = DAWN
                     logging.info('Outlets set to turn off at dawn')
                     timer_msg = 'Outlets time update successful!'
                 else:
-                    self.outlets.off_time_mode = 'fixed'
+                    self.outlets.off_time_mode = FIXED
                     time = request.form['off_time']
                     if time == '':
                         logging.error('Invalid outlets off time requested.')
