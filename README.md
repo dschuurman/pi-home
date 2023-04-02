@@ -66,20 +66,32 @@ sudo service mosquitto status
 The next step is to install [Zigbee2MQTT](https://www.zigbee2mqtt.io/) on the Raspberry Pi. 
 First, there are several dependencies that need to be installed from the command-line as follows:
 ```
-$ sudo apt-get install -y nodejs npm git make g++ gcc
+sudo apt-get install -y npm git make g++ gcc
 ```
-Once the depencies are installed, Zigbee2MQTT can be installed from github by typing the 
+Unfortunately, the Raspberry Pi repos may have an older version of the nodejs package,
+and Zigbee2MQTT requires a recent version of nodejs. You can add the repository and install a
+recent version of nodejs as follows:
+```
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install nodejs
+```
+Once the dependencies are installed, Zigbee2MQTT can be installed from github by typing the 
 following commands:
 ```
-cd $HOME
-git clone https://github.com/Koenkk/zigbee2mqtt.git
-sudo mv zigbee2mqtt /opt/zigbee2mqtt
+sudo mkdir /opt/zigbee2mqtt
+sudo chown -R ${USER}: /opt/zigbee2mqtt
+git clone --depth 1 https://github.com/Koenkk/zigbee2mqtt.git /opt/zigbee2mqtt
 cd /opt/zigbee2mqtt
 npm ci
 ```
-Zigbee2MQTT requires a [YAML](https://en.wikipedia.org/wiki/YAML) conifiguration file which 
-is located at `/opt/zigbee2mqtt/data/configuration.yaml`. 
-Edit the configuration file so that it inlucdes the following settings:
+Note that the `npm ci` may produce some warnings which can be ignored.
+
+Zigbee2MQTT requires a [YAML](https://en.wikipedia.org/wiki/YAML) conifiguration file which
+may be edited by typing:
+```
+sudo nano /opt/zigbee2mqtt/data/configuration.yaml
+``` 
+Edit the configuration file so that it includes the following settings:
 ```
 homeassistant: false
 permit_join: true
@@ -87,7 +99,7 @@ permit_join: true
 # MQTT settings
 mqtt:
   base_topic: zigbee2mqtt
-  server: 'mqtt://localhost'
+  server: 'mqtt://127.0.0.1'
 
 # Location of Zigbee USB adapter
 serial:
@@ -99,7 +111,7 @@ advanced:
 
 # Start web frontend
 frontend:
-  port: 8080
+  port: 8081
 
 # Enable over-the-air (OTA) updates for devices
 ota:
@@ -129,7 +141,7 @@ is inserted in the Raspberry Pi and start Zigbee2MQTT as follows:
 cd /opt/zigbee2mqtt
 npm start
 ```
-This will launch `zigbee2mqtt` from the command-line. Once the
+This will build and launch `zigbee2mqtt` from the command-line. Once the
 it builds and launches successfully, you can exit the program by hitting ctrl-c.
 To launch automaticlaly on boot under Linux, 
 [setup Zigbee2MQTT to run using systemctl](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#starting-zigbee2mqtt).
@@ -143,7 +155,7 @@ pairing each new device with the Zigbee hub on the Raspberry Pi.
 ### Pairing Zigbee devices
 Pairing can be easily accomplished using the web frontend to Zigbee2MQTT. 
 The web frontend can be found by pointing a web browser to the IP address 
-of the Raspberry Pi and the port number specified in the `configuration.yml` file 
+of the Raspberry Pi and the port number specified in the `configuration.yaml` file 
 (port 8081 in the example file above). In the web frontend, click the button 
 labelled `Permit join (All)`. Once this button is clicked a countdown will 
 proceed during which time new devices can be paired to the Zigbee network 
@@ -204,7 +216,8 @@ The control program is written in Python version 3 and uses the
 [paho-mqtt](https://www.eclipse.org/paho/index.php?page=clients/python/index.php) library to send
 MQTT messages. The dependencies for `pi-home` can all be installed from the command-line as follows:
 ```
-$ pip3 install configparser paho-mqtt sqlite3 smtplib astral flask waitress
+sudo apt-get install python3-pip
+pip3 install configparser paho-mqtt astral flask waitress
 ```
 The Python program assumes [zigbee2mqtt](https://www.zigbee2mqtt.io/) is installed to 
 provide a bridge to the zigbee network sensors (as described above). `zigbee2mqtt` supports a
