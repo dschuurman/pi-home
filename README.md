@@ -151,13 +151,16 @@ For more detailed informatoin about installing Zigbee2MQTT, refer to the officia
 ## Setup a Zigbee Network of Devices
 Next, we need to establish a network of Zigbee devices by
 pairing each new device with the Zigbee hub on the Raspberry Pi.
+Zigbee2MQTT supports a plethora of Zigbee devices and a 
+[friendly device webpage](https://www.zigbee2mqtt.io/supported-devices/)
+includes notes on compatibility, pairing, and details on what values are exposed. 
 
 ### Pairing Zigbee devices
 Pairing can be easily accomplished using the web frontend to Zigbee2MQTT. 
 The web frontend can be found by pointing a web browser to the IP address 
 of the Raspberry Pi and the port number specified in the `configuration.yaml` file 
-(port 8081 in the example file above). In the web frontend, click the button 
-labelled `Permit join (All)`. Once this button is clicked a countdown will 
+(port 8081 in the example file above). In the web frontend, click the `Devices` tab and 
+then the button labelled `Permit join (All)`. Once this button is clicked a countdown will 
 proceed during which time new devices can be paired to the Zigbee network 
 (typically the countdown lasts for 255 seconds).
 
@@ -170,7 +173,7 @@ Clicking on the devices heading in the web frontend should display a list of pai
 along with each manufacturer, model, and IEEE address. The web frontend provides many nifty 
 features like displaying a network map and the ability to perform updates on connected devices.
 
-In addition to the IEEE address each Zigbee device has a "friendly name."
+In addition to the IEEE address each Zigbee device may be configured with a "friendly name."
 By default, the "friendly name" is initialized to the IEEE address, but
 it is recommended that you assign a more meaningful "friendly name" using the web frontend. 
 For example, a bulb could be named "bulb1" or "porch light".

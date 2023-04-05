@@ -199,27 +199,27 @@ class Events:
         '''
         message = str(msg.payload.decode("utf-8"))
         sensor = msg.topic.split('/')[1]   # Extract sensor "friendly name" from MQTT topic
-        logging.debug(f'{datetime.now()} MQTT Message received: {message}')
-        status = json.loads(message) # Parse JSON message from sensor
+        logging.debug(f'{datetime.now()} MQTT Message received from {sensor}: {message}')
+        status = json.loads(message) # Parse JSON message from sensor into a dictionary
 
-        # analyze MQTT message for updates on various measurements
-        if "water_leak" in message:
+        # check MQTT dictionary keys for various variables exposed by sensors
+        if "water_leak" in status:
             if status['water_leak'] and sensor not in self.alarms:
-                self.mail.send(f'Water leak alarm detected for {sensor}!',message)
                 logging.info(f'Water leak alarm detected for {sensor}!')
+                self.mail.send(f'Water leak alarm detected for {sensor}!',message)
                 self.alarms.append(sensor)
                 self.sensors.water_leak = True
             elif not status['water_leak'] and sensor in self.alarms:
-                self.mail.send(f'Water leak alarm stopped for {sensor}',message)
                 logging.info(f'Water leak alarm stopped for {sensor}!')
+                self.mail.send(f'Water leak alarm stopped for {sensor}',message)
                 self.alarms.remove(sensor)
                 self.sensors.water_leak = False
 
-        if 'battery_low' in message and status['battery_low']:
-            self.mail.send(f'Low battery detected for {sensor}!', message)
+        if 'battery_low' in status and status['battery_low']:
             logging.info(f'Low battery detected for {sensor}!')
+            self.mail.send(f'Low battery detected for {sensor}!', message)
 
-        if 'temperature' in message:
+        if 'temperature' in status:
             logging.debug(f'Temperature = {status["temperature"]} degrees C')
             self.sensors.temperature = float(status['temperature'])
             # Next, check temperature value; send an alert if it falls below a preset threshold
@@ -247,29 +247,29 @@ class Events:
                 self.mail.send('Home temperature update', message)
                 self.alarms.remove(FREEZING_ALARM)
         
-        if 'humidity' in message:
+        if 'humidity' in status:
             logging.debug(f'Humidity = {status["humidity"]}')
             self.sensors.humidity = float(status['humidity'])
             # check humidity value; send an alert if it rises above a preset threshold
             if self.sensors.is_high_humidity() and HUMIDITY_ALARM not in self.alarms:
                 message = f'The basement humidity has risen to: {status["humidity"]}!'
-                self.mail.send('Home humidity warning!', message)
                 logging.info(f'{datetime.now()}: {message}')
+                self.mail.send('Home humidity warning!', message)
                 self.alarms.append(HUMIDITY_ALARM)
             # otherwise check if things are back to normal
             elif self.sensors.is_humidity_normal() and HUMIDITY_ALARM in self.alarms:
                 message = f'The basement humidity has now fallen to: {status["humidity"]}.'
-                self.mail.send('Home humidity update', message)
                 logging.info(f'{datetime.now()}: {message}')
+                self.mail.send('Home humidity update', message)
                 self.alarms.remove(HUMIDITY_ALARM)
 
-        if 'pressure' in message:
+        if 'pressure' in status:
             logging.debug(f'Air pressure = {status["pressure"]} hPa')
             self.sensors.pressure = float(status['pressure'])
 
 class Mail:
-    ''' Class to encapsulate methods to send an alert email if sensor reading goes beyond preset thresholds
-        Assumes an SMTP server is available.
+    ''' Class to encapsulate methods to send an alert email if sensor reading goes beyond 
+        preset thresholds. Requires an SMTP server to be available.
     '''
     def __init__(self, from_address, to_address, server):
         ''' Function to send a warning email - assumes server running locally to forward mail
@@ -282,8 +282,9 @@ class Mail:
         ''' Function to send an email - requires SMTP server to forward mail
             Includes optional support for html messages
         '''
-        # if no to-address set then just return
-        if self.to_address == '':
+        # if no to-address or server set then just return
+        if self.to_address == '' or self.server == '':
+            logging.debug('recipient address or SMTP server not set - no email sent')
             return
         
         # message to be sent
@@ -304,19 +305,17 @@ class Mail:
 
         # send the mail and terminate the session
         try:
-            # creates SMTP session and send mail
+            # creates SMTP session and sends mail
             s = smtplib.SMTP(self.server)
             s.sendmail(self.from_address, self.to_address, msg.as_string())
             logging.info(f'{datetime.now()}: Email alert sent to {self.to_address}')
-        except smtplib.SMTPResponseException as e:
-            logging.info(f'{datetime.now()}: Email failed to send')
-            logging.info(f'SMTP Error code: {e.smtp_code} - {e.smtp_error}')
-        finally:
             s.quit()
+        except:
+            logging.info(f'{datetime.now()}: Email alert failed to send!')
 
 # Self test code
 if __name__ == '__main__':
-    sensors = Sensors(10, 80)
+    sensors = Sensors(['test_sensor'],10, 80)
     sensors.set_temperature(10)
     assert (sensors.get_temperature() == 10)
     sensors.set_humidity(10)
@@ -337,3 +336,11 @@ if __name__ == '__main__':
     assert (sensors.is_high_humidity() == True)
     sensors.set_humidity(79-HUMIDITY_HYSTERESIS)
     assert (sensors.is_humidity_normal() == True)
+    # Test mail with no settings
+    mail = Mail('','','server')
+    try:
+        mail.send('subject','message')
+        assert False, 'Test failed: mail send method should throw an exception'
+    except:
+        assert True
+    
