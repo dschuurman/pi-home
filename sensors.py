@@ -203,6 +203,7 @@ class Events:
         status = json.loads(message) # Parse JSON message from sensor into a dictionary
 
         # check MQTT dictionary keys for various variables exposed by sensors
+        # Water leak status
         if "water_leak" in status:
             if status['water_leak'] and sensor not in self.alarms:
                 logging.info(f'Water leak alarm detected for {sensor}!')
@@ -215,10 +216,12 @@ class Events:
                 self.alarms.remove(sensor)
                 self.sensors.water_leak = False
 
+        # Low battery status
         if 'battery_low' in status and status['battery_low']:
             logging.info(f'Low battery detected for {sensor}!')
             self.mail.send(f'Low battery detected for {sensor}!', message)
 
+        # temperature reading
         if 'temperature' in status:
             logging.debug(f'Temperature = {status["temperature"]} degrees C')
             self.sensors.temperature = float(status['temperature'])
@@ -247,6 +250,7 @@ class Events:
                 self.mail.send('Home temperature update', message)
                 self.alarms.remove(FREEZING_ALARM)
         
+        # Humidity reading
         if 'humidity' in status:
             logging.debug(f'Humidity = {status["humidity"]}')
             self.sensors.humidity = float(status['humidity'])
@@ -263,9 +267,16 @@ class Events:
                 self.mail.send('Home humidity update', message)
                 self.alarms.remove(HUMIDITY_ALARM)
 
+        # Air pressure
         if 'pressure' in status:
             logging.debug(f'Air pressure = {status["pressure"]} hPa')
             self.sensors.pressure = float(status['pressure'])
+
+        # Action messages are used to send miscellaneous info and alerts
+        if 'action' in status:
+            message = f'{sensor} reporting: {status["action"]}!'
+            logging.info(f'{datetime.now()}: {message}')
+            self.mail.send(f'{status["action"]} notification', message)
 
 class Mail:
     ''' Class to encapsulate methods to send an alert email if sensor reading goes beyond 
