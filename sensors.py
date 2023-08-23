@@ -256,13 +256,13 @@ class Events:
             self.sensors.humidity = float(status['humidity'])
             # check humidity value; send an alert if it rises above a preset threshold
             if self.sensors.is_high_humidity() and HUMIDITY_ALARM not in self.alarms:
-                message = f'The basement humidity has risen to: {status["humidity"]}!'
+                message = f'The house humidity has risen to: {status["humidity"]}!'
                 logging.info(f'{datetime.now()}: {message}')
                 self.mail.send('Home humidity warning!', message)
                 self.alarms.append(HUMIDITY_ALARM)
             # otherwise check if things are back to normal
             elif self.sensors.is_humidity_normal() and HUMIDITY_ALARM in self.alarms:
-                message = f'The basement humidity has now fallen to: {status["humidity"]}.'
+                message = f'The house humidity has now fallen to: {status["humidity"]}.'
                 logging.info(f'{datetime.now()}: {message}')
                 self.mail.send('Home humidity update', message)
                 self.alarms.remove(HUMIDITY_ALARM)

@@ -34,8 +34,8 @@ When sensor readings (such as temperature) exceed pre-defined thresholds or when
 # Installation
 This project was developed on a Raspberry Pi running 
 [Raspberry Pi OS Lite](https://www.raspberrypi.org/software/operating-systems/)
-and written in Python version 3. The code relies heavily on 
-[Zigbee2MQTT](https://www.zigbee2mqtt.io/)
+(32-bit or 64-bit) and written in Python version 3. 
+The code relies heavily on [Zigbee2MQTT](https://www.zigbee2mqtt.io/)
 to bridge a network of Zigbee devices to MQTT (a common IoT networking protocol). 
 Zigbee2MQTT supports various [Zigbee USB adapters](https://www.zigbee2mqtt.io/guide/adapters/) 
 along with [numerous Zigbee devices](https://www.zigbee2mqtt.io/supported-devices/).
@@ -86,7 +86,7 @@ npm ci
 ```
 Note that the `npm ci` may produce some warnings which can be ignored.
 
-Zigbee2MQTT requires a [YAML](https://en.wikipedia.org/wiki/YAML) conifiguration file which
+Zigbee2MQTT requires a [YAML](https://en.wikipedia.org/wiki/YAML) configuration file which
 may be edited by typing:
 ```
 sudo nano /opt/zigbee2mqtt/data/configuration.yaml
@@ -130,10 +130,12 @@ a new random key when Zigbee2MQTT is first run.
 > It's recommended to disable `permit_join` after all the Zigbee devices
 have been paired with your Zigbee adapter to prevent further devices
 from attempting to join and possibly exposing the network key.
-> It is recommended to enable over-the-air (OTA) updates for all devices to keep then up-to-date.
-> The `frontend` setting provides a nifty web frontend that can be used
-> for binding devices, debugging, and showing a map of the Zigbee network,
-> but it also exposes device information on your local network.
+>
+> Note that the `frontend` setting provides a web frontend for viewing the Zigbee
+network running on the specified port. While this can be useful for
+setup and debugging, you may wish to disable it later.
+>
+> It is recommended to enable over-the-air (OTA) updates for all devices to keep them up-to-date.
 
 Once the setup and configuration are complete, ensure the Zigbee USB adapter
 is inserted in the Raspberry Pi and start Zigbee2MQTT as follows:
@@ -149,11 +151,10 @@ For more detailed informatoin about installing Zigbee2MQTT, refer to the officia
 [Zigbee2MQTT installation instructions](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#installing).
 
 ## Setup a Zigbee Network of Devices
-Next, we need to establish a network of Zigbee devices by
-pairing each new device with the Zigbee hub on the Raspberry Pi.
-Zigbee2MQTT supports a plethora of Zigbee devices and a 
-[friendly device webpage](https://www.zigbee2mqtt.io/supported-devices/)
-includes notes on compatibility, pairing, and details on what values are exposed. 
+Next, we need to establish a network of Zigbee devices by pairing each new device 
+with the Zigbee hub on the Raspberry Pi. Zigbee2MQTT supports a plethora of Zigbee devices 
+and a [friendly device webpage](https://www.zigbee2mqtt.io/supported-devices/)
+includes notes on compatibility, pairing, and details on what values are exposed.
 
 ### Pairing Zigbee devices
 Pairing can be easily accomplished using the web frontend to Zigbee2MQTT. 
