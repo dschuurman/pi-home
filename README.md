@@ -29,7 +29,7 @@ A timer is used take periodic sensor samples and to schedule on and off times fo
 Timer events are implemented using a scheduler which stores events in a priority queue. Sensor samples are stored
 in a local SQLite database and plots of historical values are available in a webpage which uses a javascript plotting library.
 When sensor readings (such as temperature) exceed pre-defined thresholds or when alarms are detected 
-(eg. low battery and water sensor alarms) an e-mail message can be forwarded to an SMTP server.
+\(eg. low battery and water sensor alarms\) an e-mail message can be forwarded to an SMTP server.
 
 # Installation
 This project was developed on a Raspberry Pi running 
@@ -43,41 +43,41 @@ along with [numerous Zigbee devices](https://www.zigbee2mqtt.io/supported-device
 ## Install Mosquitto
 The first step is to install `mosquitto` which provides an open source MQTT broker.
 This can be installed from the command-line as follows:
-```
+```bash
 sudo apt install -y mosquitto mosquitto-clients
 ```
 Since we will be connecting to the MQTT broker locally, we can edit the mosquitto 
-congifuration file to explicitly listen *only* on the local loopback interface.
+configuration file to explicitly listen *only* on the local loopback interface.
 This can be done by adding the following lines in `/etc/mosquitto/conf.d/local.conf`:
-```
+```bash
 listener 1883 127.0.0.1
 allow_anonymous true
 ```
-Next, enable the mosquitto service as follows:
-```
+Next, enable the `mosquitto` broker service as follows:
+```bash
 sudo systemctl enable mosquitto.service
 ```
 Ensure the `mosquitto` service is now running by typing:
-```
+```bash
 sudo service mosquitto status
 ```
 
 ## Install Zigbee2MQTT
 The next step is to install [Zigbee2MQTT](https://www.zigbee2mqtt.io/) on the Raspberry Pi. 
 First, there are several dependencies that need to be installed from the command-line as follows:
-```
+```bash
 sudo apt-get install -y npm git make g++ gcc
 ```
-Unfortunately, the Raspberry Pi repos may have an older version of the nodejs package,
-and Zigbee2MQTT requires a recent version of nodejs. You can add the repository and install a
-recent version of nodejs as follows:
-```
+Unfortunately, the Raspberry Pi repos may have an older version of the **nodejs** package,
+and Zigbee2MQTT requires a recent version of **nodejs**. You can add the repository and install a
+recent version of **nodejs** as follows:
+```bash
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt install nodejs
 ```
 Once the dependencies are installed, Zigbee2MQTT can be installed from github by typing the 
 following commands:
-```
+```bash
 sudo mkdir /opt/zigbee2mqtt
 sudo chown -R ${USER}: /opt/zigbee2mqtt
 git clone --depth 1 https://github.com/Koenkk/zigbee2mqtt.git /opt/zigbee2mqtt
@@ -88,7 +88,7 @@ Note that the `npm ci` may produce some warnings which can be ignored.
 
 Zigbee2MQTT requires a [YAML](https://en.wikipedia.org/wiki/YAML) configuration file which
 may be edited by typing:
-```
+```bash
 sudo nano /opt/zigbee2mqtt/data/configuration.yaml
 ``` 
 Edit the configuration file so that it includes the following settings:
@@ -127,25 +127,23 @@ a new random key when Zigbee2MQTT is first run.
 
 > ***Security Notes***
 >
-> It's recommended to disable `permit_join` after all the Zigbee devices
-have been paired with your Zigbee adapter to prevent further devices
-from attempting to join and possibly exposing the network key.
+> It's recommended to disable `permit_join` after all the Zigbee devices have been paired with your Zigbee
+> adapter to prevent further devices from attempting to join and possibly exposing the network key.
 >
-> Note that the `frontend` setting provides a web frontend for viewing the Zigbee
-network running on the specified port. While this can be useful for
-setup and debugging, you may wish to disable it later.
+> Note that the `frontend` setting provides a web frontend at a specified port for viewing the Zigbee network. 
+> While this can be useful for setup and debugging, you may wish to disable it later.
 >
-> It is recommended to enable over-the-air (OTA) updates for all devices to keep them up-to-date.
+> It is recommended that over-the-air \(OTA\) updates be enabled for all devices to keep them up-to-date.
 
 Once the setup and configuration are complete, ensure the Zigbee USB adapter
 is inserted in the Raspberry Pi and start Zigbee2MQTT as follows:
-```
+```bash
 cd /opt/zigbee2mqtt
 npm start
 ```
 This will build and launch `zigbee2mqtt` from the command-line. Once the
 it builds and launches successfully, you can exit the program by hitting ctrl-c.
-To launch automaticlaly on boot under Linux, 
+To launch automatically on boot under Linux, 
 [setup Zigbee2MQTT to run using systemctl](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#starting-zigbee2mqtt).
 For more detailed informatoin about installing Zigbee2MQTT, refer to the official
 [Zigbee2MQTT installation instructions](https://www.zigbee2mqtt.io/guide/installation/01_linux.html#installing).
@@ -160,7 +158,7 @@ includes notes on compatibility, pairing, and details on what values are exposed
 Pairing can be easily accomplished using the web frontend to Zigbee2MQTT. 
 The web frontend can be found by pointing a web browser to the IP address 
 of the Raspberry Pi and the port number specified in the `configuration.yaml` file 
-(port 8081 in the example file above). In the web frontend, click the `Devices` tab and 
+\(port 8081 in the example file above\). In the web frontend, click the `Devices` tab and 
 then the button labelled `Permit join (All)`. Once this button is clicked a countdown will 
 proceed during which time new devices can be paired to the Zigbee network 
 (typically the countdown lasts for 255 seconds).
@@ -169,8 +167,8 @@ Typically a new device is paired by performing a factory reset of the device.
 The way to perform a factory reset varies by device type and manufacturer. 
 For example, Ikea Tradfri bulbs can be factory reset by toggling the power 6 times
 and Ikea Tradfri outlets can be factory reset using a reset button in a small pinhole.
-A few moments after reseting a device, the web frontend should report the pairing of the device. 
-Clicking on the devices heading in the web frontend should display a list of paired devices 
+A few moments after reseting a device, the web page should report the pairing of the device. 
+Clicking on the devices tab in the web page should display a list of paired devices 
 along with each manufacturer, model, and IEEE address. The web frontend provides many nifty 
 features like displaying a network map and the ability to perform updates on connected devices.
 
@@ -194,14 +192,15 @@ at preset times, but binding a switch enables the device to be manually controll
 
 ## Notes on Controlling Zigbee devices over MQTT
 Once devices have been paired, they can be controlled simply by sending 
-specially crafted MQTT messages. These messages must be published to the topic
+specially crafted MQTT messages to the local broker. These messages must be published to the topic
 `zigbee2mqtt/FRIENDLY_NAME/set` where `FRIENDLY_NAME` is the friendly name for a device. 
 In the case of a bulb or smartplug, sending a message of "ON"
 or "OFF" to the appropriate topic for the device will turn the device on or off.
 
 Test MQTT messages can be sent from the command line on the Raspberry Pi using tools included with 
-with the mosquitto package. For example, to turn on a light bulb with the friendly name of "bulb1" using the mostquitto client tool, type:
-```
+with the `mosquitto-clients` package. For example, to turn on a light bulb with the friendly name of 
+"bulb1" using the mosquitto client tool, type:
+```bash
 mosquitto_pub -h 127.0.0.1 -t zigbee2mqtt/bulb1/set -m "ON"
 ```
 where `127.0.0.1` is the local loopback address to connect to the local MQTT broker and 
@@ -209,8 +208,8 @@ where `127.0.0.1` is the local loopback address to connect to the local MQTT bro
 the device with the friendly name `bulb1`. 
 
 By subscribing the MQTT topic for a sensor you can receive updates from a sensor.
-Consult the Zigbee2MQTT documentation for a [complete list of MQTT topics and
-messages](https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html).
+Consult the online Zigbee2MQTT documentation for a 
+[complete list of MQTT topics and messages](https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html).
 
 ## Setting up the Python control software
 Once Zigbee2MQTT is installed and devices are successfully paired we can setup the
@@ -219,7 +218,7 @@ sending messages to the MQTT broker which are then bridged to the Zigbee network
 The control program is written in Python version 3 and uses the 
 [paho-mqtt](https://www.eclipse.org/paho/index.php?page=clients/python/index.php) library to send
 MQTT messages. The dependencies for `pi-home` can all be installed from the command-line as follows:
-```
+```bash
 sudo apt-get install python3-pip
 pip3 install configparser paho-mqtt astral flask waitress
 ```
@@ -260,14 +259,14 @@ folder where the program resides.
 
 ## Launching the program
 The program can be launched from the command-line from the installation folder as follows:
-```
+```bash
 python3 pi-home.py
 ```
 The `pi-home` program may also be automatically launched at boot time as a systemd service.
 This service must be configured to wait for the network to come online before starting.
 This can be configured by creating a systemd service file in `/etc/systemd/system/pi-home.service` 
 with the following settings:
-```
+```bash
 [Unit]
 Description=pi-home
 After=network-online.target
@@ -282,15 +281,15 @@ WantedBy=multi-user.target
 Note that the `User` and `WorkingDirectory` will need to be set to reflect
 your default username and the directory where the pi-home source files are installed.
 Finally, enable the pi-home service as follows:
-```
+```bash
 sudo systemctl enable pi-home.service
 ```
 Reboot the computer and ensure that the service is started as expected. To check the status
 of the service, type:
-```
+```bash
 sudo systemctl status pi-home.service
 ```
-Once the program is running, you should be able to access the web interface by pointing your browser to:
+Once the program is running, you should be able to access the web interface by pointing your browser to: 
 ```
 http://a.b.c.d.:8080
 ```
@@ -299,10 +298,10 @@ in the `home-send.conf` file (set to 8080 by default). The web service provides 
 for viewing the status, sensor history, and adjusting the settings for the pi-home program.
 
 
-## Security considerations
-This should be run on a secure local network since the web pages are open and unencrypted.
-The logfile is also accessible via the web interface.
-
-This program is intended to be run on a private home network and is provided "as is" without any 
-warranty, expressed or implied, about merchantability or fitness for a particular purpose. 
-*Your mileage may vary*.
+> **Security Notes**  
+> This should be run on a secure local network since the web pages are open and unencrypted.
+> The logfile is also accessible via the web interface.
+> 
+> This program is intended to be run on a private home network and is provided "as is" without any 
+> warranty, expressed or implied, about merchantability or fitness for a particular purpose. 
+> *Your mileage may vary*.
